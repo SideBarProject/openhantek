@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Tick.qml</file>
+        <file>AxisLabels.qml</file>
+        <file>Axes.qml</file>
+        <file>PlotArea.qml</file>
+    </qresource>
+</RCC>

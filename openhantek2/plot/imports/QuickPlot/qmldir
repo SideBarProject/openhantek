@@ -1,0 +1,6 @@
+module QuickPlot
+Axes 1.0 Axes.qml
+AxisLabels 1.0 AxisLabels.qml
+PlotArea 1.0 PlotArea.qml
+Tick 1.0 Tick.qml
+plugin quickplotqmlplugin

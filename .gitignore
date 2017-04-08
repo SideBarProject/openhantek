@@ -1,0 +1,8 @@
+*.bak
+*.o
+*.so
+*.*~
+*.user
+build/
+*.qmlc
+.editconfig
