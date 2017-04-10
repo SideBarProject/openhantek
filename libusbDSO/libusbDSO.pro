@@ -4,13 +4,14 @@
 #
 #-------------------------------------------------
 
-#QT       -= core gui
+QT       -= core gui
 
 TARGET = usbDSO
 TEMPLATE = lib
 CONFIG += staticlib
 
 QMAKE_CXXFLAGS += -std=c++11
+
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -29,7 +30,8 @@ SOURCES += deviceBase.cpp \
            deviceBaseSamples.cpp \
            usbCommunication.cpp \
            utils/transferBuffer.cpp \
-           utils/stdstringsplit.cpp
+           utils/stdstringsplit.cpp \
+    devicedummy.cpp
 
 HEADERS += deviceBase.h \
            devicedummy.h \

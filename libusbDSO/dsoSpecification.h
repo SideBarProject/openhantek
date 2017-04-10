@@ -3,6 +3,7 @@
 /// \todo Make channels configurable
 
 #include <vector>
+#include "dsoSettings.h"
 
 namespace DSO {
     #define MAX_CHANNELS 6
@@ -50,6 +51,20 @@ namespace DSO {
             : gainIndex(gainIndex), gainSteps(gainSteps), voltage(voltage) {}
     };
 
+    //////////////////////////////////////////////////////////////////////////////
+    /// \struct dsoAvailableSamplingRate
+    /// \brief Stores the samplerates available on the device.
+    ///
+    struct dsoAvailableSamplingRate {
+        HWSamplingRateID samplingRateID;    ///< this is the command to be sent to the scope
+        double samplingrateValue;
+        HWRecordLengthID recordLengthID;
+        double timeBase;
+        unsigned int downsampling;
+        dsoAvailableSamplingRate(HWSamplingRateID samplingRateID, double samplingrateValue, HWRecordLengthID recordLengthID, double timeBase, unsigned downSampling)
+            : samplingRateID(samplingRateID), samplingrateValue(samplingrateValue), recordLengthID(recordLengthID), timeBase(timeBase), downsampling(downSampling){}
+    };
+
     enum dsoFeatures {
         noFeatures = 0,
         hasHardwareTrigger = 1
@@ -61,15 +76,15 @@ namespace DSO {
     struct dsoSpecification {
         ControlSamplerateLimits samplerate_single; ///< The limits for single channel mode
         ControlSamplerateLimits samplerate_multi; ///< The limits for multi channel mode
-
         unsigned char sampleSize  = 8; ///< Number of bits per sample. Default: 8bit ADC
 
         unsigned channels         = 0;
         unsigned channels_special = 0;
         std::vector<std::string> specialTriggerSources; ///< Names of the special trigger sources
-
+        std::vector<Coupling> availableCoupling;
         dsoFeatures features = noFeatures;
-
+        std::vector<dsoAvailableSamplingRate> availableSamplingRates;
+        std::vector<DSO::HWRecordLengthID> availableRecordLengths;
         std::vector<dsoGainLevel> gainLevel;
     };
 }

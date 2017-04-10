@@ -23,13 +23,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "deviceBase.h"
-#include <QDebug>
+#include "dsoSettings.h"
+
+#include <iostream>
+#include <math.h>
 
 namespace DSO {
     void DeviceBase::resetSettings()
     {
         _samples.resize(_specification.channels);
-        _settings.samplerate.limits = &(_specification.samplerate_single);
+//        _settings.samplerate.limits = &(_specification.samplerate_single);
         _specification.gainLevel.clear();
 
         for(DSO::dsoSettingsChannel& c: _settings.voltage)
@@ -46,11 +49,57 @@ namespace DSO {
 
     }
 
+    const std::vector<DSO::Coupling> &DeviceBase::getAvailableCoupling() const {
+        return _specification.availableCoupling;
+    }
+
+    unsigned int DeviceBase::getPhysicalChannels(){
+        return _specification.channels;
+    }
+
+    double DeviceBase::getSamplingrateFromTimebase(double timebase) {
+        const std::vector<DSO::dsoAvailableSamplingRate> &availableSamplingRates=getAvailableSamplingrates();
+        for (unsigned int i=0;i<availableSamplingRates.size();i++)
+            if (fabs(availableSamplingRates[i].timeBase - timebase) < 1e-9)
+                return availableSamplingRates[i].samplingrateValue;
+        return -1;
+    }
+
+    HWRecordLengthID DeviceBase::getRecordLengthFromTimebase(double timebase) {
+        const std::vector<DSO::dsoAvailableSamplingRate> &availableSamplingRates=getAvailableSamplingrates();
+        for (unsigned int i=0;i<availableSamplingRates.size();i++)
+            if (fabs(availableSamplingRates[i].timeBase - timebase) < 1e-9)
+                return availableSamplingRates[i].recordLengthID;
+        return RECORDLENGTH_INVALID;
+    }
+
+    int DeviceBase::getDownsamplerRateFromTimebase(double timebase) {
+        const std::vector<DSO::dsoAvailableSamplingRate> &availableSamplingRates=getAvailableSamplingrates();
+        for (unsigned int i=0;i<availableSamplingRates.size();i++)
+            if (fabs(availableSamplingRates[i].timeBase - timebase) < 1e-9)
+                return availableSamplingRates[i].downsampling;
+        return -1;
+    }
+
+    const std::vector<DSO::HWRecordLengthID> &DeviceBase::getRecordLength() const {
+//          return nullptr;
+        std::cout << "trying to return record lengths" << std::endl;
+        return _specification.availableRecordLengths;
+}
+
+    const std::vector<dsoGainLevel> &DeviceBase::getGainSpecs() const {
+//          return nullptr;
+        std::cout << "trying to return gain specs " << std::endl;
+        return _specification.gainLevel;
+    }
+
     /// \brief Get a list of the names of the special trigger sources.
     const std::vector<std::string>& DeviceBase::getSpecialTriggerSources() const {
         return _specification.specialTriggerSources;
     }
-
+    const std::vector<DSO::dsoAvailableSamplingRate> &DeviceBase::getAvailableSamplingrates() const {
+        return _specification.availableSamplingRates;
+    }
 
     ErrorCode DeviceBase::setChannelUsed(unsigned int channel, bool used)
     {
@@ -66,12 +115,13 @@ namespace DSO {
         }
 
         // Check if fast rate mode availability changed
+/*
         bool fastRateChanged = (_settings.usedChannels <= 1) != (channelCount <= 1);
         _settings.usedChannels = channelCount;
 
         if(fastRateChanged)
             notifySamplerateLimitsChanged();
-
+*/
         return ErrorCode::ERROR_PARAMETER;
     }
 
@@ -81,14 +131,45 @@ namespace DSO {
         return ErrorCode::ERROR_PARAMETER;
     }
 
+    ErrorCode DeviceBase::setTimebase(double timebase) {
+        _settings.timebase = timebase;
+        /* after setting the timebase, update record length, sampling rate and downsampler as well */
+        const std::vector<DSO::dsoAvailableSamplingRate> &availableSamplingRates=getAvailableSamplingrates();
+        for (unsigned int i=0;i<availableSamplingRates.size();i++)
+            if (fabs(availableSamplingRates[i].timeBase - timebase) < 1e-9) {
+                _settings.samplerate.downsampler = availableSamplingRates[i].downsampling;
+                _settings.samplerate.current = availableSamplingRates[i].samplingrateValue;
+                _settings.samplerate.recordLengthID = availableSamplingRates[i].recordLengthID;
+            }
+
+        return ErrorCode::ERROR_NONE;
+    }
+    double DeviceBase::getTimebase() {
+        return _settings.timebase;
+    }
+
     ErrorCode DeviceBase::setGain(unsigned int channel, double gain)
     {
+        std::cout <<"DeviceBase::setGain on channel: " << channel << " to " << gain << std::endl;
         if(!isDeviceConnected())
             return ErrorCode::ERROR_CONNECTION;
 
         if(channel >= _specification.channels)
             return ErrorCode::ERROR_PARAMETER;
-
+        _settings.voltage[channel].gain = gain/DIVS_VOLTAGE;
+        int gainID = -1;
+        for (int i=0;i<_specification.gainLevel.size();++i) {
+            std::cout << "DeviceBase::setGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
+            if (_specification.gainLevel[i].gainSteps == gain) {
+                gainID = _specification.gainLevel[i].gainIndex;
+                break;
+            }
+        }
+        if (gainID == -1)
+            std::cout << "DeviceBase::setGain: gain " << gain << " not found in specs" << std::endl;
+        else
+            _settings.voltage[channel].gainID = gainID;
+/*
         // Find lowest gain voltage thats at least as high as the requested
         unsigned gainID;
         for(gainID = 0; gainID < _specification.gainLevel.size() - 1; ++gainID)
@@ -102,7 +183,7 @@ namespace DSO {
         updateGain(channel, _specification.gainLevel[gainID].gainIndex, gainID);
         _settings.voltage[channel].gainID = gainID;
         setOffset(channel, _settings.voltage[channel].offset);
-
+*/
         // _specification.gainSteps[gainId]
         return ErrorCode::ERROR_NONE;
     }
@@ -172,7 +253,7 @@ namespace DSO {
         if(!isDeviceConnected())
             return ErrorCode::ERROR_CONNECTION;
 
-        if(mode < TriggerMode::AUTO || mode > TriggerMode::SINGLE)
+        if(mode < TriggerMode::TRIGGERMODE_AUTO || mode > TriggerMode::TRIGGERMODE_SINGLE)
             return ErrorCode::ERROR_PARAMETER;
 
         _settings.trigger.mode = mode;

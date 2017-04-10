@@ -120,7 +120,6 @@ int USBCommunication::connect() {
                 }
             }
         }
-        std::cout << "Connected device " << _model.modelName << std::endl;
         break;
     }
 
@@ -142,7 +141,7 @@ int USBCommunication::connect() {
             _packetsizeCached = -1;
             break;
     }
-
+    std::cout << _model.modelName << " successfully connected to USB" << std::endl;
     return LIBUSB_SUCCESS;
 }
 

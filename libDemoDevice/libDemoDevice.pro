@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-# QT       -= core gui
+QT       -= core gui
 
 TARGET = DemoDevice
 TEMPLATE = lib
@@ -24,9 +24,5 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += sineWaveDevice.cpp
 
 HEADERS += deviceDemo.h sineWaveDevice.h
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
 
 INCLUDEPATH += ../libusbDSO

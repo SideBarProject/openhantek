@@ -7,6 +7,8 @@
 namespace DSO {
 
 DeviceList::DeviceList() {
+    std::cout << "creating device list" << std::endl;
+    std::cout << "initializing usb" << std::endl;
     libusb_init(&_usb_context);
 }
 
@@ -16,6 +18,7 @@ DeviceList::~DeviceList() {
 }
 
 void DeviceList::registerModel(const DSODeviceDescription& model) {
+    std::cout << "deviceList: RegisterModel " << model.modelName << std::endl;
     _registeredModels.push_back(model);
     _modelsChanged();
 }
@@ -56,8 +59,14 @@ void DeviceList::hotplugAdd(libusb_device *device) {
         break;
     }
 
-    if (!foundModel) return;
-
+    if (!foundModel) {
+        /*
+        std::cout << "Product Id: 0x" << std::hex << descriptor.idProduct << std::endl;
+        std::cout << "VendorId: 0x" << std::hex << descriptor.idVendor << std::endl;
+        std::cout << "is not a known Hantek Model" << std::endl;
+        */
+        return;
+    }
     std::cout << "Found device at "
               << (unsigned)libusb_get_bus_number(device)
               << " " << (unsigned)libusb_get_device_address(device)
@@ -87,6 +96,7 @@ void DeviceList::hotplugRemove(libusb_device *device) {
 void DeviceList::checkForDevices() const
 {
     struct timeval t = {0,0};
+    std::cout << "deviceList: checkForDevices()" << std::endl;
     libusb_handle_events_timeout_completed(nullptr, &t, nullptr);
 }
 
@@ -123,6 +133,7 @@ int DeviceList::update() {
     libusb_device **deviceList;
 
     ssize_t deviceCount = libusb_get_device_list(_usb_context, &deviceList);
+    std::cout << "deviceList update() deviceCount: " << deviceCount << std::endl;
     if(deviceCount < 0)
         return LIBUSB_ERROR_NO_DEVICE;
 
@@ -144,6 +155,7 @@ void DeviceList::addDevice(DeviceBase* device) {
 std::shared_ptr<DeviceBase> DeviceList::getDeviceByUID(unsigned uid)
 {
     for (std::shared_ptr<DSO::DeviceBase>& device: _deviceList) {
+        std::cout << "getDeviceByUID: uid: " << device->getUniqueID() << std::endl;
         if (device->getUniqueID() == uid)
             return device;
     }
@@ -156,6 +168,7 @@ const std::vector<std::shared_ptr<DeviceBase> >& DeviceList::getList() const {
 
 const std::vector<DSODeviceDescription> DeviceList::getKnownModels() const
 {
+    std::cout << "getKnownModels()" << std::endl;
     return _registeredModels;
 }
 

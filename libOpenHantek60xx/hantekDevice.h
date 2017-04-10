@@ -63,7 +63,7 @@ class HantekDevice : public DSO::DeviceBase, public DSO::CommunicationThreadQueu
         /// The DSO samples passes multiple buffers before it appears
         /// on screen. _data is the first one after the usb communication.
         HT6022_DataSize _dataSize = HT6022_DataSize::DS_128KB;
-        unsigned char _data[(int)HT6022_DataSize::DS_1MB*2];
+        unsigned char   _data[(int) HT6022_DataSize::DS_1MB*2];
 
         //////////////////////////////////////////////////////////////////////////////
         /// \enum ControlIndex

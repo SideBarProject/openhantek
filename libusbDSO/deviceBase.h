@@ -26,8 +26,11 @@
 #pragma once
 
 #include <functional>
-
+#include <vector>
 #include "deviceBaseSamples.h"
+#include "deviceBaseSpecifications.h"
+#include "dsoSpecification.h"
+#include "dsoSettings.h"
 #include "errorcodes.h"
 
 namespace DSO {
@@ -48,7 +51,7 @@ class DeviceBase : public DeviceBaseSamples {
         /// \brief Set the coupling (AC/DC/Off) for the given channel.
         /// \param channel The channel that should be set.
         /// \param coupling The new coupling for the channel.
-        /// \return See ::ErrorCode::ErrorCode.
+        /// \return See ::ErrorCode::ErrorCode.this->couplingStrings.append(Dso::couplingString((DSO::Coupling) DSO::Coupling::COUPLING_DC));
         virtual ErrorCode setCoupling(unsigned int channel, Coupling coupling);
 
         /// \brief Sets the gain for the given channel.
@@ -63,7 +66,7 @@ class DeviceBase : public DeviceBaseSamples {
         /// \brief Set the offset for the given channel.
         /// \param channel The channel that should be set.
         /// \param offset The new offset value (0.0 - 1.0).
-        /// \return See ::ErrorCode::ErrorCode.
+        /// \return See ::ErrorCode::ErrorCode.this->couplingStrings.append(Dso::couplingString((DSO::Coupling) DSO::Coupling::COUPLING_DC));
         virtual ErrorCode setOffset(unsigned int channel, double offset);
 
         /// \brief Set the trigger source.
@@ -118,7 +121,38 @@ class DeviceBase : public DeviceBaseSamples {
 
         /// \brief Disconnect the oscilloscope.
         virtual void disconnectDevice() = 0;
-    public:
+
+        /// \brief Returns specs fro gain settings available on the device
+        const std::vector<DSO::dsoGainLevel>& getGainSpecs() const;
+
+        /// \brief Returns the available coupling for the model
+        const std::vector<DSO::Coupling> &getAvailableCoupling() const;
+
+        /// \brief Returns the no of physical channels
+        unsigned int getPhysicalChannels();
+
+
+        /// \brief Returns the sampling rates supported by the device
+        const std::vector<DSO::dsoAvailableSamplingRate> &getAvailableSamplingrates() const;
+
+        /// \brief Returns the record lengths supported by the device
+        const std::vector<DSO::HWRecordLengthID> &getRecordLength() const;
+
+        /// \brief return sampling rate from timebase
+        double getSamplingrateFromTimebase(double timebase);
+
+        /// \brief return record length from timebase
+        HWRecordLengthID getRecordLengthFromTimebase(double timebase);
+
+        ///
+        virtual int getDownsamplerRateFromTimebase(double timebase);
+
+        /// \brief set timebase
+        ErrorCode setTimebase(double timebase);
+
+        /// \brief set timebase
+        double getTimebase();
+
     /**
      * This section contains callback methods. Register your function or class method to get notified
      * of events.

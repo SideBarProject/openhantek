@@ -3,7 +3,7 @@
 #include "dsoSettings.h"
 #include <array>
 
-namespace DSOAnalyser {
+namespace DSOAnalyzer {
 
 //////////////////////////////////////////////////////////////////////////////
 /// \enum WindowFunction                                                 dso.h
@@ -35,17 +35,19 @@ enum WindowFunction {
 /// \brief The different math modes for the math-channel.
 enum class MathMode {
     ADD_CH1_CH2,                     ///< Add the values of the channels
-    SUB_CH2_FROM_CH1,                     ///< Subtract CH2 from CH1
-    SUB_CH1_FROM_CH2                     ///< Subtract CH1 from CH2
+    SUB_CH2_FROM_CH1,                ///< Subtract CH2 from CH1
+    SUB_CH1_FROM_CH2,                ///< Subtract CH1 from CH2
+    MATHMODE_COUNT
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \struct OpenHantekSettingsScope                                          settings.h
 /// \brief Holds the settings for the oscilloscope.
-struct AnalyserSettings {
+struct AnalyzerSettings {
     std::vector<bool> spectrumEnabled;
     bool mathChannelEnabled      = false;
     MathMode mathmode;
+    unsigned int downsampling;
     WindowFunction spectrumWindow = WINDOW_RECTANGULAR; ///< Window function for DFT
     double spectrumReference      = 0.0; ///< Reference level for spectrum in dBm
     double spectrumLimit          = 1.0; ///< Minimum magnitude of the spectrum (Avoids peaks)

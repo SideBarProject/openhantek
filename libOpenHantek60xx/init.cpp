@@ -23,6 +23,7 @@
 #include "init.h"
 #include "hantekDevice.h"
 #include "deviceDescriptionEntry.h"
+#include <iostream>
 
 namespace Hantek60xx {
     DSO::DeviceBase* makeHantek60xxDevice(libusb_device* device, const DSO::DSODeviceDescription& model) {
@@ -31,9 +32,13 @@ namespace Hantek60xx {
     }
 
     void registerHantek60xxProducts(DSO::DeviceList& devicelist) {
-        devicelist.registerModel({"DSO-HT6022BE", 0X6022, 0x04b5, 0, 0x86, false, makeHantek60xxDevice});
-        devicelist.registerModel({"DSO-HT6022BE", 0X6022, 0x04b4, 0, 0, true,  makeHantek60xxDevice});
-        devicelist.registerModel({"DSO-HT6022BL", 0X602A, 0x04b5, 0, 0x86, false, makeHantek60xxDevice});
-        devicelist.registerModel({"DSO-HT6022BL", 0X602A, 0x04b4, 0, 0, true,  makeHantek60xxDevice});
+        std::vector<std::string> firmwareNames;
+        firmwareNames = {"Hantek firmware", "Hoenicke firmware"};
+        std::cout <<  "registerHantel60xxProducts" << std::endl;
+        devicelist.registerModel({"DSO-HT6022BE with Hantek firmware ", 0X6022, 0x04b5, 0, 0x86, false, firmwareNames, makeHantek60xxDevice});
+        devicelist.registerModel({"DSO-HT6022BE with Hönicke firmware", 0X608e, 0x1d50, 0, 0x86, false, firmwareNames, makeHantek60xxDevice});
+        devicelist.registerModel({"DSO-HT6022BE without firmware     ", 0X6022, 0x04b4, 0, 0,    true,  firmwareNames, makeHantek60xxDevice});
+        devicelist.registerModel({"DSO-HT6022BL with Hantek firmware ", 0X602A, 0x04b5, 0, 0x86, false, firmwareNames, makeHantek60xxDevice});
+        devicelist.registerModel({"DSO-HT6022BL without firmware     ", 0X602A, 0x04b4, 0, 0,    true,  firmwareNames, makeHantek60xxDevice});
     }
 }

@@ -34,13 +34,15 @@ std::vector<int>& operator<<(std::vector<int>& v, int x);
 std::vector<unsigned short int>& operator<<(std::vector<unsigned short int>& v, unsigned short int x);
 
 void DeviceBaseSamples::startSampling() {
+    std::cout << "start sampling" << std::endl;
     _sampling = true;
-    _samplingStarted();
+   _samplingStarted();
 }
 
 void DeviceBaseSamples::stopSampling() {
-    _sampling = false;
-    _samplingStopped();
+     std::cout << "stop sampling" << std::endl;
+   _sampling = false;
+   _samplingStopped();
 }
 
 bool DeviceBaseSamples::toogleSampling() {
@@ -54,20 +56,27 @@ bool DeviceBaseSamples::toogleSampling() {
 }
 
 double DeviceBaseSamples::getMinSamplerate() {
+    std::cout << "DeviceBaseSamples::getMinSamplerate: samplerate_single.base " <<  _specification.samplerate_single.base << std::endl;
+    std::cout << "DeviceBaseSamples::getMinSamplerate: single.maxDownsampler " <<  _specification.samplerate_single.maxDownsampler << std::endl;
+
+
     return (double) _specification.samplerate_single.base / _specification.samplerate_single.maxDownsampler;
 }
 
 double DeviceBaseSamples::getMaxSamplerate() {
+    std::cout << "DeviceBaseSamples::getMaxSamplerate" << std::endl;
     ControlSamplerateLimits *limits = (_settings.usedChannels <= 1) ? &_specification.samplerate_multi : &_specification.samplerate_single;
     return limits->max;
 }
 
 double DeviceBaseSamples::getSamplerate()
 {
+    std::cout << "DeviceBaseSamples::getSamplerate: " << _settings.samplerate.current << std::endl;
     return _settings.samplerate.current;
 }
-
+/*
 void DeviceBaseSamples::notifySamplerateLimitsChanged() {
+    std::cout << "DeviceBaseSamples::notifySamplerateLimitsChanged() " << std::endl;
     recomputeSamplerate(_settings.samplerate.target_samplerate,
                         _specification.samplerate_single.max, false);
 
@@ -75,14 +84,18 @@ void DeviceBaseSamples::notifySamplerateLimitsChanged() {
     // Works only if the minimum samplerate for normal mode is lower than for fast rate mode, which is the case for all models
     _samplerateLimitsChanged(getMinSamplerate() / divider, getMaxSamplerate() / divider);
 }
-
+*/
 void DeviceBaseSamples::setSamplerate(double samplerate) {
+/*
+    std::cout << "DeviceBaseSamples::setSamplerate to " << samplerate << std::endl;
     if(samplerate == 0.0)
         throw std::runtime_error("setSamplerate with 0 not allowed");
 
     recomputeSamplerate(samplerate, _specification.samplerate_single.max, false);
+*/
+    _settings.samplerate.current = samplerate;
 }
-
+/*
 void DeviceBaseSamples::setSamplerateByRecordTime(double duration_in_s) {
     if(duration_in_s <= 0.0)
         throw std::runtime_error("setRecordTime with 0 not allowed");
@@ -92,17 +105,19 @@ void DeviceBaseSamples::setSamplerateByRecordTime(double duration_in_s) {
 
     recomputeSamplerate(maxSamplerate, _specification.samplerate_multi.base, true);
 }
-
+*/
 void DeviceBaseSamples::setPreTriggerPosition(double pretrigger_pos_in_s)
 {
     _settings.trigger.pretrigger_pos_in_s = pretrigger_pos_in_s;
     updatePretriggerPosition(pretrigger_pos_in_s);
 }
 
-
+/*
 void DeviceBaseSamples::recomputeSamplerate(double samplerate, double baseSamplerate, bool maximum)
 {
     // Update target samplerate
+    std::cout << "DeviceBaseSamples::recomputeSamplerate with samplerate=" << samplerate << std::endl;
+
     _settings.samplerate.target_samplerate = samplerate;
 
     // Update fastRate
@@ -116,11 +131,21 @@ void DeviceBaseSamples::recomputeSamplerate(double samplerate, double baseSample
     // What is the nearest, at least as high samplerate the scope can provide?
     unsigned int downsampler;
     double bestSamplerate;
+    std::cout << "before tie" << std::endl;
     std::tie(bestSamplerate, downsampler) = computeBestSamplerate(samplerate, _settings.samplerate.limits, maximum);
 
+    std::cout << "DeviceBaseSamples::updateSamplerate downsampler:" << downsampler << " fastrate: " << fastRate<< std::endl;
     updateSamplerate(_settings.samplerate.limits, downsampler, fastRate);
 
     _settings.samplerate.downsampler = downsampler;
+    if (downsampler)
+        std::cout << "DeviceBaseSamples::recomputeSamplerate downsampler" << std::endl;
+    else
+        std::cout << "DeviceBaseSamples::recomputeSamplerate no downsampler" << std::endl;
+    std::cout << "DeviceBaseSamples::recomputeSamplerate limits->base: " << _settings.samplerate.limits->base << std::endl;
+    std::cout << "DeviceBaseSamples::recomputeSamplerate limits->max: " << _settings.samplerate.limits->max << std::endl;
+    std::cout << "DeviceBaseSamples::recomputeSamplerate divider: " << getCurrentRecordType().divider << std::endl;
+
     if(downsampler)
         _settings.samplerate.current = _settings.samplerate.limits->base / getCurrentRecordType().divider / downsampler;
     else
@@ -143,13 +168,18 @@ void DeviceBaseSamples::recomputeSamplerate(double samplerate, double baseSample
 
 std::pair<double, unsigned int> DeviceBaseSamples::computeBestSamplerate(double samplerate, const ControlSamplerateLimits* limits, bool maximum) const
 {
-    // Abort if the input value is invalid
-    if(samplerate == 0.0)
-        throw std::runtime_error("computeBestSamplerate with 0 not allowed");
 
+    // Abort if the input value is invalid
+    std::cout << "DeviceBaseSamples::computeBestSamplerate: samplerate: " << samplerate << std::endl;
+    if(samplerate == 0.0) {
+        std::cout << "DeviceBaseSamples::computeBestSamplerate: samplerate is 0 and would throw exception" << std::endl;
+        throw std::runtime_error("computeBestSamplerate with 0 not allowed");
+    }
     double bestSamplerate = 0.0;
 
     // Get downsampling factor that would provide the requested rate
+
+    std::cout << "DeviceBaseSamples::computeBestSamplerate: currentRecordType().divider: " << getCurrentRecordType().divider << std::endl;
     double bestDownsampler = (double) limits->base / getCurrentRecordType().divider / samplerate;
 
     // Base samplerate sufficient, or is the maximum better?
@@ -176,21 +206,25 @@ double DeviceBaseSamples::getDownsamplerRate(double bestDownsampler, bool maximu
     else
         return floor(bestDownsampler); // Round down to next integer value
 }
+*/
 
 unsigned int DeviceBaseSamples::getExpectedRecordLength() {
-    unsigned recordLength = getCurrentRecordType().length_per_channel;
-    if(!isFastRate())
-        recordLength *= _specification.channels;
+    return((unsigned int)_settings.samplerate.recordLengthID);
 
-    return recordLength;
 }
 
+void DeviceBaseSamples::setRecordLengthByID(HWRecordLengthID recordTypeID) {
+    _settings.samplerate.recordLengthID= recordTypeID;
+}
+
+/*
 void DeviceBaseSamples::setRecordLengthByID(unsigned int recordTypeID) {
     updateRecordLength(recordTypeID);
 
     // Check if the divider has changed and adapt samplerate limits accordingly
     bool bDividerChanged = recordTypeID != _settings.recordTypeID;
     _settings.recordTypeID = recordTypeID;
+    std::cout << "DeviceBaseSamples::setRecordLengthByID recordTypeID: " << recordTypeID << std::endl;
 
     if(bDividerChanged) {
         this->notifySamplerateLimitsChanged();
@@ -203,7 +237,7 @@ void DeviceBaseSamples::setRecordLengthByID(unsigned int recordTypeID) {
 
     _recordLengthChanged(_settings.recordTypeID);
 }
-
+*/
 void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
     unsigned sampleCountAllChannels;
 
@@ -214,13 +248,14 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
         sampleCountAllChannels = data.size() / 2; // For 9bit-16bit Analog digital converters
     else
         sampleCountAllChannels = data.size();
-
+    std::cout << "DeviceBaseSamples::processSamples sampleCountAllChannels: " << sampleCountAllChannels << std::endl;
     // Fast rate mode, one channel is using all buffers
     // Normal mode, channels are using their separate buffers
-    const bool fastRate = isFastRate();
+//    const bool fastRate = isFastRate();
+    const bool fastRate=false;
     const unsigned sampleCount = fastRate ? sampleCountAllChannels : (sampleCountAllChannels / _specification.channels);
     const unsigned buffer_inc  = fastRate ? 1 : _specification.channels;
-
+    std::cout << "DeviceBaseSamples::processSamples sampleCounts: " << sampleCount << std::endl;
     // Convert data from the oscilloscope and write it into the sample buffer
     // Additional most significant bits after the normal data
     const unsigned int extraBitsSize = _specification.sampleSize - 8; // Number of extra bits
@@ -248,26 +283,32 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
         // Non fastrate: The channels data are interleaved. If we have 2 channels for example,
         // all even buffer positions are chan0, all uneven positions belong to chan1.
         const int chanOffset = fastRate ? 0 : _specification.channels - 1 - channel;
+        std::cout << "DeviceBaseSamples::processSamples channel offset: " << chanOffset << std::endl;
+        std::cout << "buffer position: " << bufferPosition <<" buffer increment " << buffer_inc << std::endl;
 
         for(unsigned sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex, bufferPosition += buffer_inc) {
-            bufferPosition %= sampleCount;
+            bufferPosition %= 2*sampleCount;
 
             if (samplesize_greater_byte) {
                 if (fastRate) {
+                    std::cout << "DeviceBaseSamples::processSamples fastRate" << std::endl;
                     // Track the position of the extra bits in the additional byte
                     unsigned int extraBitsPosition = bufferPosition % _specification.channels;
                     unsigned extraBitsIndex = 8 - (_specification.channels - 1 - extraBitsPosition) * extraBitsSize;
                     extra_value = (((unsigned short int) data[sampleCountAllChannels + bufferPosition - extraBitsPosition] << extraBitsIndex) & extraBitsMask);
                 } else {
+                    std::cout << "DeviceBaseSamples::processSamples not fastRate" << std::endl;
                     unsigned extraBitsIndex = 8 - channel * extraBitsSize; // Bit position offset for extra bits extraction
                     extra_value = (((unsigned short int) data[sampleCountAllChannels + bufferPosition] << extraBitsIndex) & extraBitsMask);
                 }
             }
 
             const double value = data[bufferPosition + chanOffset] + extra_value;
-            _samples[channel][sampleIndex] = (value / gain_limit - offsetReal) * gain;
+//            _samples[channel][sampleIndex] = (value / gain_limit - offsetReal) * gain;
+            _samples[channel][sampleIndex] = value;
         }
     }
+
 
     static unsigned id = 0;
     (void)id;

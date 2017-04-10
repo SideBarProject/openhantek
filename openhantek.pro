@@ -1,9 +1,8 @@
 TEMPLATE = subdirs
-CONFIG += ordered
-SUBDIRS = \
+
+SUBDIRS += \
+    openhantek \
     libDemoDevice \
     libOpenHantek60xx \
-    libOpenHantek2xxx-5xxx \
-    libPostprocessingDSO \
     libusbDSO \
-    openhantek2
+    libPostprocessingDSO

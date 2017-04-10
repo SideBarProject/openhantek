@@ -30,6 +30,7 @@
 #include <memory>
 #include <climits>
 #include <cstring>
+#include <fcntl.h>
 
 #include "utils/containerStream.h"
 
@@ -124,8 +125,7 @@ bool HantekDevice::isDeviceConnected() const {
 }
 
 void HantekDevice::connectDevice(){
-    if (_model.need_firmware) return;
-
+    std::cout << "HantekDevice::connectDevice()" << std::endl;
     if (_model.need_firmware) return;
 
     _statusMessage(_device->connect());
@@ -138,8 +138,8 @@ void HantekDevice::connectDevice(){
     resetPending();
     resetSettings();
 
-    _specification.samplerate_single.base = 50e6;
-    _specification.samplerate_single.max = 50e6;
+    _specification.samplerate_single.base = 48e6;
+    _specification.samplerate_single.max = 48e6;
     _specification.samplerate_single.maxDownsampler = 131072;
     _specification.samplerate_single.recordTypes.push_back(DSO::dsoRecord(rollModeValue, 1000));
     _specification.samplerate_single.recordTypes.push_back(DSO::dsoRecord(10240, 1));
@@ -151,27 +151,78 @@ void HantekDevice::connectDevice(){
     _specification.samplerate_single.recordTypes.push_back(DSO::dsoRecord(20480, 1));
     _specification.samplerate_single.recordTypes.push_back(DSO::dsoRecord(65536, 1));
     _specification.sampleSize = 8;
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(0,  0.08, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,  0.16, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(2,  0.40, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(0,  0.80, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,  1.60, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(2,  4.00, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(0,  8.00, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1, 16.00, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(2, 40.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.08, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.16, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.40, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.80, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   1.60, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(2,   4.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(5,   8.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10, 16.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10, 40.00, 255));
+
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_48MHZ,  48e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,2e-6,1));
+//    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_30MHZ,  30e6, DSO::HWRecordLengthID::RECORDLENGTH_128KB,5e-6));
+//    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_24MHZ,  24e6, DSO::HWRecordLengthID::RECORDLENGTH_128KB,5e-6));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_16MHZ,  16e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,5e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_8MHZ,    8e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,10e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_4MHZ,    4e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,20e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,50e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,100e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_2KB,200e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_5KB,500e-6,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_10KB,1e-3,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_20KB,2e-3,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_500KHZ,200e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,5e-3,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_200KHZ,200e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,10e-3,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,20e-3,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_10KB,50e-3,5));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_10KB,100e-3,10));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_10KB,200e-3,20));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_10KB,500e-3,50));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_10KB,1,100));
+
+    _specification.availableRecordLengths.push_back(DSO::RECORDLENGTH_1KB);
+    _specification.availableRecordLengths.push_back(DSO::RECORDLENGTH_2KB);
+    _specification.availableRecordLengths.push_back(DSO::RECORDLENGTH_5KB);
+    _specification.availableRecordLengths.push_back(DSO::RECORDLENGTH_10KB);
+    _specification.availableRecordLengths.push_back(DSO::RECORDLENGTH_20KB);
+
+    _specification.availableCoupling.push_back(DSO::Coupling::COUPLING_DC);
+
+    std::cout << "setting data creation thread to keep running" << std::endl;
+    this->_keep_thread_running = true;
+
+    for (unsigned c=0; c < _specification.channels; ++c)
+       getGainLevel(c).offset[c] = {0,255};
+    std::cout << "set sample rate to " << getMinSamplerate() << std::endl;
+    setSamplerate(getMinSamplerate());
 
     // _signals for initial _settings
-    notifySamplerateLimitsChanged();
+    std::cout << "hantek::connectDevice() notify settings changed " << std::endl;
+//    notifySamplerateLimitsChanged();
     _recordLengthChanged(_settings.recordTypeID);
-    if(!isRollingMode())
-        _recordTimeChanged((double) getCurrentRecordType().length_per_channel / _settings.samplerate.current);
-    _samplerateChanged(_settings.samplerate.current);
+    std::cout << "HantekDevice::connectDevice() _settings.samplerate.current: " << _settings.samplerate.current << std::endl;
+//    if(!isRollingMode())
+//        _recordTimeChanged((double) getCurrentRecordType().length_per_channel / _settings.samplerate.current);
+//    _samplerateChanged(_settings.samplerate.current);
 
     _sampling = false;
+    /*
+     * here we switch sampling on the hardware on and off
+     */
+    _samplingStarted =  [this]() {
+
+    };
+    _samplingStopped =  [this]() {
+
+    };
+
     // The control loop is running until the device is disconnected
     _keep_thread_running = true;
     _thread = std::unique_ptr<std::thread>(new std::thread(&HantekDevice::run,std::ref(*this)));
+
+    _deviceConnected();
 
 }
 
@@ -183,7 +234,7 @@ void HantekDevice::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsign
 
 void HantekDevice::updateGain(unsigned channel, unsigned char gainIndex, unsigned gainId)
 {
-
+    std::cout << "hantekDevice::updateGain on channel: " << channel <<" gainIndex: " << gainIndex << " gainId: " << gainId << std::endl;
 }
 
 void HantekDevice::updateOffset(unsigned int channel, unsigned short offsetValue)
@@ -207,6 +258,12 @@ return ErrorCode::ERROR_NONE;
 }
 
 int HantekDevice::readSamples() {
+    int retCode;
+    FILE *fd_ch1,*fd_ch2;
+    fd_ch1 = fopen("/tmp/traceDataCh1.txt","w");
+    fd_ch2 = fopen("/tmp/traceDataCh2.txt","w");
+
+    std::cout << "read " << (int)_dataSize*2 << "samples " << std::endl;
     *_data = HT6022_READ_CONTROL_DATA;
     int errorCode = _device->controlWrite(HT6022_READ_CONTROL_REQUEST,
                                           _data,
@@ -216,33 +273,93 @@ int HantekDevice::readSamples() {
     if(errorCode < 0)
         return errorCode;
 
-    return _device->bulkReadMulti(_data, (int)_dataSize*2);
+    retCode = _device->bulkReadMulti(_data, (int)_dataSize*2);
+
+    std::cout << "ht6022ReadData: " << retCode << "samples read\n" << std::endl;
+    for (int i=0;i<retCode;i+=2) {
+      fprintf(fd_ch1,"%d\n",_data[i]);
+      fprintf(fd_ch2,"%d\n",_data[i+1]);
+    }
+    fclose(fd_ch1);
+    fclose(fd_ch2);
+
+    return retCode;
 }
 
 void HantekDevice::run() {
+/*
+    FILE *fd_ch1,*fd_ch2;
+    fd_ch1 = fopen("/tmp/traceDataCh1.txt","w");
+    fd_ch2 = fopen("/tmp/traceDataCh2.txt","w");
+*/
+    unsigned char *dataPtr = _data;
+    std::cout << "Hantek run thread " << std::endl;
+    std::vector<unsigned char> data;
+
     while (_keep_thread_running) {
+/*
+ * if we are not sampling then there is no reason to read out the scope
+ */
+        if (!this->_sampling) {
+            std::cout << "HantekDevice::run() not sampling" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
+        else
+            std::cout << "HantekDevice::run() sampling switched on" << std::endl;
+
         if (!sendPendingCommands(_device.get())) break;
+
+        data.resize((int)_dataSize*2);
 
         // Compute sleep time
         int cycleTime;
 
         // Check the current oscilloscope state everytime 25% of the time the buffer should be refilled
-        if(isRollingMode())
-            cycleTime = _device->getPacketSize() / (!isFastRate() ? 1 : _specification.channels);
-        else
-            cycleTime = getCurrentRecordType().length_per_channel;
+//       if(isRollingMode())
+//           cycleTime = _device->getPacketSize() / (!isFastRate() ? 1 : _specification.channels);
+//        else
+//            cycleTime = getCurrentRecordType().length_per_channel;
 
         cycleTime = cycleTime / _settings.samplerate.current * 250;
 
         // Not more often than every 10 ms though but at least once every second
         cycleTime = std::max(std::min(10, cycleTime), 1000);
 
-        if (readSamples() < 0)
+        data[0] = HT6022_READ_CONTROL_DATA;
+        std::cout << "reading data from scope" << std::endl;
+        int errorCode = _device->controlWrite(HT6022_READ_CONTROL_REQUEST,
+                                              &data[0],
+                                              HT6022_READ_CONTROL_SIZE,
+                                              HT6022_READ_CONTROL_VALUE,
+                                              HT6022_READ_CONTROL_INDEX);
+        if(errorCode < 0) {
+            std::cout << "error reading hantek samples " << std::endl;
             break;
+        }
+        int retCode = _device->bulkReadMulti(&data[0], (int)_dataSize*2);
+/* generate test data on channel 2 */
+//        for (int i=0;i<_dataSize*2;++i)
 
-        //processSamples(_data, _dataSize);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(cycleTime));
+/*
+        std::cout << "writing data to file " << std::endl;
+        for (int i=0;i<retCode;i+=2) {
+          fprintf(fd_ch1,"%d\n",data[i]);
+          fprintf(fd_ch2,"%d\n",data[i+1]);
+        }
+        fclose(fd_ch1);
+        fclose(fd_ch2);
+*/
+//        data.resize((samples);
+        std::cout << "processing the data " << std::endl;
+        processSamples(data);
+
+        std::cout << "calling dataAnalyzer:: data_from_device" << std::endl;
+        _samplesAvailable(_samples);
+
+//        std::this_thread::sleep_for(std::chrono::milliseconds(cycleTime));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     _device->disconnect();

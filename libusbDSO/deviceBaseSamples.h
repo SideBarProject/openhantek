@@ -68,7 +68,7 @@ public:
     /// \brief Sets the size of the oscilloscopes sample buffer.
     /// setPretriggerPosition() is called.
     /// \param recordTypeID The record length index that should be set.
-    void setRecordLengthByID(unsigned int recordTypeID);
+    void setRecordLengthByID(HWRecordLengthID recordTypeID);
 
     /// \brief Set the trigger position.
     /// \param position The new trigger position (in s).
@@ -83,8 +83,8 @@ public:
     /// \brief Stop/Start sampling process.
     bool toogleSampling();
 
-    inline bool isRollingMode() { return getCurrentRecordType().length_per_channel == rollModeValue; }
-    inline bool isFastRate() { return _settings.samplerate.limits == &_specification.samplerate_multi;}
+//    inline bool isRollingMode() { return getCurrentRecordType().length_per_channel == rollModeValue; }
+//    inline bool isFastRate() { return _settings.samplerate.limits == &_specification.samplerate_multi;}
 protected:
     /// \brief Sets the size of the sample buffer without updating dependencies.
     /// \param index The record length index that should be set.
@@ -145,10 +145,10 @@ protected:
     void processSamples(std::vector<unsigned char>& data);
 
     /// \brief Notifies about the minimum and maximum supported samplerate.
-    void notifySamplerateLimitsChanged();
+//    void notifySamplerateLimitsChanged();
 
     /// Recomputes samplerrate. Called by setSamplerate...
-    void recomputeSamplerate(double samplerate, double baseSamplerate, bool maximum);
+//    void recomputeSamplerate(double samplerate, double baseSamplerate, bool maximum);
 
     /// \brief Calculate the nearest samplerate supported by the oscilloscope.
     /// This method is used by recomputeSamplerate(...).
@@ -156,11 +156,13 @@ protected:
     /// \param limits The samplerrate limits.
     /// \param maximum The target samplerate is the maximum allowed when true, the minimum otherwise.
     /// \return pair(The nearest samplerate supported; Selected downsampling factor).
+/*
     virtual std::pair<double, unsigned int> computeBestSamplerate(double samplerate,
                                                                   const DSO::ControlSamplerateLimits* limits,
                                                                   bool maximum) const;
+*/
+//    virtual double getDownsamplerRate(double bestDownsampler, bool maximum) const;
 
-    virtual double getDownsamplerRate(double bestDownsampler, bool maximum) const;
 protected:
     typedef std::vector<double> data_one_channel;
     std::vector<data_one_channel> _samples;    ///< Sample data vectors sent to the data analyzer

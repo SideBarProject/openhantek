@@ -22,28 +22,36 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <cmath>
+#include <iostream>
+#include <stdio.h>
+#include <unistd.h>
 #include <fftw3.h>
 #include "dataAnalyzer.h"
 #include "deviceBase.h"
 #include "errorcodes.h"
 #include "utils/timestampDebug.h"
 
-namespace DSOAnalyser {
 
-DataAnalyzer::DataAnalyzer(std::shared_ptr<DSO::DeviceBase> device, AnalyserSettings* analyserSettings)
-    : _analyserSettings(analyserSettings), _device(device) {
-        // lock analyse thread mutex
-        _new_data_arrived_mutex.lock();
+namespace DSOAnalyzer {
+
+DataAnalyzer::DataAnalyzer(std::shared_ptr<DSO::DeviceBase> device, AnalyzerSettings* analyzerSettings)
+    : _analyzerSettings(analyzerSettings), _device(device) {
 
         // Connect to device
         using namespace std::placeholders;
+        std::cout << "DataAnalyzer: binding samplesAvailable to data_from_device" << std::endl;
         _device->_samplesAvailable = std::bind(&DataAnalyzer::data_from_device, this, _1);
 
-        _analyserSettings->spectrumEnabled.resize(_device->getChannelCount());
+        _analyzerSettings->spectrumEnabled.resize(_device->getChannelCount());
 
         // Create thread
-        _keep_thread_running = true;
-        _thread = std::unique_ptr<std::thread>(new std::thread(&DataAnalyzer::analyseThread,std::ref(*this)));
+        this->_keep_thread_running = true;
+
+        // lock analyzethread mutex
+//       std::cout << "data analyzer created and locked new_data_arrived" << std::endl;
+        _new_data_arrived_mutex.lock();
+//        sleep(1);
+        _thread = std::unique_ptr<std::thread>(new std::thread(&DataAnalyzer::analyzeThread,std::ref(*this)));
     }
 
 DataAnalyzer::~DataAnalyzer() {
@@ -60,9 +68,14 @@ DataAnalyzer::~DataAnalyzer() {
 /// \param channel Channel, whose data should be returned.
 /// \return Analyzed data as AnalyzedData struct.
 AnalyzedData const *DataAnalyzer::data(unsigned channel) const {
-    if(channel >= this->_analyzedData.size())
-        return nullptr;
+    std::cout << "DataAnalyzer::data(): channel " << channel << std::endl;
 
+    if(channel >= this->_analyzedData.size()) {
+        std::cout << "_analyzedData.size(): " << this->_analyzedData.size() << std::endl;
+        std::cout << "returning nulptr" << std::endl;
+        return nullptr;
+    }
+    std::cout << "DataAnalyzer::data(): interval " << this->_analyzedData[channel].samples.voltage.interval << std::endl;
     return &this->_analyzedData[channel];
 }
 
@@ -74,6 +87,7 @@ unsigned DataAnalyzer::sampleCount() const {
 
 /// \brief Returns the mutex for the data.
 /// \return Mutex for the analyzed data.
+
 std::mutex& DataAnalyzer::mutex() {
     return _data_in_use_mutex;
 }
@@ -83,7 +97,7 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
 
     // Adapt the number of channels for analyzed data
     this->_analyzedData.resize(incomingData.size());
-
+    std::cout << "DataAnalyzer::copySamples() incoming data size: " << incomingData.size() << std::endl;
     for(unsigned channel = 0; channel < incomingData.size(); ++channel) {
         AnalyzedData *const channelData = &this->_analyzedData[channel];
 
@@ -95,7 +109,15 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
         }
 
         // Set sampling interval
-        const double interval = 1.0 / samplerate;
+        unsigned int downsamplingRate = _device->getDownsamplerRateFromTimebase(_device->getTimebase());
+
+        std::cout << "DataAnalyzer:: copySamples() downsampling rate: " << downsamplingRate << std::endl;
+        std::cout << "DataAnalyzer::copySamples() samplerate: " << samplerate << std::endl;
+//       samplerate = 100000;      // 1 MHz
+
+        const double interval = 1.0 * (double) downsamplingRate / (samplerate);
+        std::cout << "interval: " << interval << std::endl;
+
         if(interval != channelData->samples.voltage.interval) {
             channelData->samples.voltage.interval = interval;
             if(append) // Clear roll buffer if the samplerate changed
@@ -103,13 +125,17 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
         }
 
         // Copy the buffer of the oscilloscope into the sample buffer
-        if(append)
+
+        if(append) {
             channelData->samples.voltage.sample.insert(channelData->samples.voltage.sample.end(),
                                                        incomingData.at(channel).begin(),
                                                        incomingData.at(channel).end());
-        else
+        std::cout << "DataAnalyzer::copySamples() append" << std::endl;
+        }
+        else {
+            std::cout << "DataAnalyzer::copySamples() not appending" << std::endl;
             channelData->samples.voltage.sample = incomingData.at(channel);
-
+        }
         maxSamples = std::max(channelData->samples.voltage.sample.size(), maxSamples);
     }
     _maxSamples = maxSamples;
@@ -117,30 +143,47 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
 
 void DataAnalyzer::computeMathChannels()
 {
-    if (!_analyserSettings->mathChannelEnabled || _device->getChannelCount()<2)
+    if (!_analyzerSettings->mathChannelEnabled || _device->getChannelCount()<2) {
+        std::cout << "computeMathChannels: maths not enabled" << std::endl;
         return;
+    }
+    else
+        std::cout << "computeMathChannels: maths are enabled" << std::endl;
 
     unsigned math_channel_id = _device->getChannelCount();
+    std::cout << "math_channel_id: " << math_channel_id << std::endl;
     _analyzedData.resize(math_channel_id+1);
 
     // Calculate values and write them into the sample buffer
     std::vector<double>::const_iterator ch1Iterator = _analyzedData[0].samples.voltage.sample.begin();
     std::vector<double>::const_iterator ch2Iterator = _analyzedData[1].samples.voltage.sample.begin();
     std::vector<double> &resultData = this->_analyzedData[math_channel_id].samples.voltage.sample;
-    switch(_analyserSettings->mathmode) {
-        case MathMode::ADD_CH1_CH2:
-            for(unsigned i=0;i<_maxSamples;++i)
-                resultData.push_back(*(ch1Iterator++) + *(ch2Iterator++));
-            break;
-        case MathMode::SUB_CH2_FROM_CH1:
+
+    std::cout << "_analyzerSettings->mathmode: " << (int)_analyzerSettings->mathmode << std::endl;
+    _analyzerSettings->mathmode = MathMode::ADD_CH1_CH2;
+
+    switch(_analyzerSettings->mathmode) {
+    case MathMode::ADD_CH1_CH2:
+        std::cout << "math mode add" << std::endl;
+        for(unsigned i=0;i<_maxSamples;++i)
+            resultData.push_back(*(ch1Iterator++) + *(ch2Iterator++));
+        break;
+    case MathMode::SUB_CH2_FROM_CH1:
+            std::cout << "math mode ch2 - ch1" << std::endl;
             for(unsigned i=0;i<_maxSamples;++i)
                 resultData.push_back(*(ch1Iterator++) - *(ch2Iterator++));
             break;
         case MathMode::SUB_CH1_FROM_CH2:
+             std::cout << "math mode ch1 - ch2" << std::endl;
             for(unsigned i=0;i<_maxSamples;++i)
                 resultData.push_back(*(ch2Iterator++) - *(ch1Iterator++));
             break;
+        case MathMode::MATHMODE_COUNT:
+            break;
     }
+    this->_analyzedData[math_channel_id].samples.voltage.interval = this->_analyzedData[0].samples.voltage.interval;
+
+    std::cout << "math interval: " << this->_analyzedData[math_channel_id].samples.voltage.interval << std::endl;
 }
 
 void DataAnalyzer::computeFreqSpectrumPeak(unsigned& lastRecordLength, WindowFunction& lastWindow, double *window) {
@@ -156,7 +199,7 @@ void DataAnalyzer::computeFreqSpectrumPeak(unsigned& lastRecordLength, WindowFun
         // Calculate new window
         unsigned sampleCount = channelData->samples.voltage.sample.size();
         bool sampleCountChanged = lastRecordLength != sampleCount;
-        if(lastWindow != _analyserSettings->spectrumWindow || sampleCountChanged) {
+        if(lastWindow != _analyzerSettings->spectrumWindow || sampleCountChanged) {
             if(sampleCountChanged || !window) {
                 lastRecordLength = sampleCount;
 
@@ -166,9 +209,9 @@ void DataAnalyzer::computeFreqSpectrumPeak(unsigned& lastRecordLength, WindowFun
             }
 
             unsigned windowEnd = lastRecordLength - 1;
-            lastWindow = _analyserSettings->spectrumWindow;
+            lastWindow = _analyzerSettings->spectrumWindow;
 
-            switch(_analyserSettings->spectrumWindow) {
+            switch(_analyzerSettings->spectrumWindow) {
                 case WINDOW_HAMMING:
                     for(unsigned windowPosition = 0; windowPosition < lastRecordLength; ++windowPosition)
                         *(window + windowPosition) = 0.54 - 0.46 * cos(2.0 * M_PI * windowPosition / windowEnd);
@@ -322,10 +365,10 @@ void DataAnalyzer::computeFreqSpectrumPeak(unsigned& lastRecordLength, WindowFun
             channelData->frequency = 0;
 
         // Finally calculate the real spectrum if we want it
-        if(_analyserSettings->spectrumEnabled[channel]) {
+        if(_analyzerSettings->spectrumEnabled[channel]) {
             // Convert values into dB (Relative to the reference level)
-            double offset = 60 - _analyserSettings->spectrumReference - 20 * log10(dftLength);
-            double offsetLimit = _analyserSettings->spectrumLimit - _analyserSettings->spectrumReference;
+            double offset = 60 - _analyzerSettings->spectrumReference - 20 * log10(dftLength);
+            double offsetLimit = _analyzerSettings->spectrumLimit - _analyzerSettings->spectrumReference;
             for(double& spectrumIterator: channelData->samples.spectrum.sample) {
                 double value = 20 * log10(fabs(channelData->samples.spectrum.sample[position])) + offset;
 
@@ -339,14 +382,14 @@ void DataAnalyzer::computeFreqSpectrumPeak(unsigned& lastRecordLength, WindowFun
     }
 }
 
-AnalyserSettings* DataAnalyzer::getAnalyserSettings() const
+AnalyzerSettings* DataAnalyzer::getAnalyzerSettings() const
 {
-    return _analyserSettings;
+    return _analyzerSettings;
 }
 
-void DataAnalyzer::setAnalyserSettings(AnalyserSettings* analyserSettings)
+void DataAnalyzer::setAnalyzerSettings(AnalyzerSettings* analyzerSettings)
 {
-    _analyserSettings = analyserSettings;
+    _analyzerSettings = analyzerSettings;
 }
 
 std::shared_ptr<DSO::DeviceBase> DataAnalyzer::getDevice() const
@@ -354,16 +397,20 @@ std::shared_ptr<DSO::DeviceBase> DataAnalyzer::getDevice() const
     return _device;
 }
 
-void DataAnalyzer::analyseThread() {
-    unsigned lastRecordLength = 0; ///< The record length of the previously analyzed data
+void DataAnalyzer::analyzeThread() {
+    unsigned lastRecordLength = 0;                    ///< The record length of the previously analyzed data
     WindowFunction lastWindow     = WINDOW_UNDEFINED; ///< The previously used dft window function
-    double *window                = nullptr; ///< The array for the dft window factors
+    double *window                = nullptr;          ///< The array for the dft window factors
 
+    if (!_keep_thread_running)
+        std::cout << "analysis thread not kept running" << std::endl;
     while(_keep_thread_running) {
         _new_data_arrived_mutex.lock();
+        std::cout << "analyzeThread()" << std::endl;
         computeMathChannels();
         computeFreqSpectrumPeak(lastRecordLength, lastWindow, window);
-        _analyzed();
+        std::cout << "analyzeThread() analysis finished" << std::endl;
+        this ->_analyzed();
 
         //static unsigned long id = 0;
         //(void)id;
@@ -378,14 +425,25 @@ void DataAnalyzer::analyseThread() {
 /// \param append The data will be appended to the previously analyzed data (Roll mode).
 /// \param mutex The mutex for all input data.
 void DataAnalyzer::data_from_device(const std::vector<std::vector<double>>& data) {
-    // Lock the device thread, make a copy of the sample data, unlock the device thread.
-    // Previous analysis still running, drop the new data
+// Lock the device thread, make a copy of the sample data, unlock the device thread.
+// Previous analysis still running, drop the new data
+
+//    if(this->sampleCount() == 0) {
+//        std::cout << "data from device, sample count is zero" << std::endl;
+//        return;
+
+    std::cout << "DataAnalyzer: data_from_device" << std::endl;
     if(!_data_in_use_mutex.try_lock()) {
+        std::cout << "DataAnalyzer: data_from_device data are in use" << std::endl;
         timestampDebug("Analyzer overload, dropping packets!");
         return;
     }
-    copySamples(data, _device->getSamplerate(), _device->isRollingMode());
-    _new_data_arrived_mutex.unlock(); ///< New data arrived, unlock analyse thread
+
+//    copySamples(data, _device->getSamplerate(), _device->isRollingMode());
+    copySamples(data, _device->getSamplerate(), false);
+    std::cout << "DataAnalyzer::data_from_device no of samples: " << this->sampleCount() << std::endl;
+    std::cout << "unlocking new_data_arrived " << std::endl;
+    _new_data_arrived_mutex.unlock(); ///< New data arrived, unlock analyzethread
 }
 
 }

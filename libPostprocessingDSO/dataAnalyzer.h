@@ -20,7 +20,9 @@
 //  this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ////////////////////////////////////////////////////////////////////////////////
-#pragma once
+
+#ifndef DATAANALYZER_H
+#define DATAANALYZER_H
 
 #include <vector>
 #include <thread>
@@ -35,7 +37,7 @@ namespace DSO {
     class DeviceBase;
 }
 
-namespace DSOAnalyser {
+namespace DSOAnalyzer {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \struct SampleValues                                          dataanalyzer.h
@@ -69,7 +71,7 @@ struct AnalyzedData {
 /// time-/frequencysteps between two values.
 class DataAnalyzer {
     public:
-        DataAnalyzer(std::shared_ptr<DSO::DeviceBase> device, AnalyserSettings *analyserSettings);
+        DataAnalyzer(std::shared_ptr<DSO::DeviceBase> device, AnalyzerSettings *AnalyzerSettings);
         ~DataAnalyzer();
 
         const AnalyzedData *data(unsigned int channel) const;
@@ -77,7 +79,7 @@ class DataAnalyzer {
         const std::vector<AnalyzedData>& getAllData() const {return _analyzedData;}
         unsigned int sampleCount() const;
 
-        /// Return a mutex that have to be locked while the analysed data
+        /// Return a mutex that have to be locked while the Analyzed data
         /// vector (acquired via data()) is in use and unlocked after that.
         /// This class can not continue analysing incoming data until the
         /// mutex is unlocked.
@@ -85,26 +87,26 @@ class DataAnalyzer {
 
         /// Signal: Data has been analyzed. Get the data via
         /// data(), get the sample count via sampleCount().
-        /// You must unlock the analysed mutex (get it by mutex())
+        /// You must unlock the Analyzed mutex (get it by mutex())
         /// after you have done your processing on data()/getAllData().
         std::function<void()> _analyzed = [](){};
 
         std::shared_ptr<DSO::DeviceBase> getDevice() const;
-        AnalyserSettings* getAnalyserSettings() const;
-        void setAnalyserSettings(AnalyserSettings* analyserSettings);
+        AnalyzerSettings* getAnalyzerSettings() const;
+        void setAnalyzerSettings(AnalyzerSettings* AnalyzerSettings);
 
 private:
 
-        /// Analyse incoming data from a device in a separate thread. Will make a copy of data for this purpose.
+        /// Analyze incoming data from a device in a separate thread. Will make a copy of data for this purpose.
         /// This method is connected to the device in the constructor.
         void data_from_device(const std::vector<std::vector<double> >& data);
 
-        /// A separate thread that runs forever and analyses incoming data from a device.
+        /// A separate thread that runs forever and Analyzes incoming data from a device.
         /// Works with a copy of the device data. An anaylse iteration is started as soon
-        /// as _mutex is unlocked in data_from_device. _analyseIsRunning will be set true
+        /// as _mutex is unlocked in data_from_device. _AnalyzeIsRunning will be set true
         /// for an iteration.
-        void analyseThread();
-        /// Analyses the data from the dso (in a separate thread).
+        void analyzeThread();
+        /// Analyzes the data from the dso (in a separate thread).
         void copySamples(const std::vector<std::vector<double>>& incomingData, double samplerate, bool append);
         /// Computes the math channels
         void computeMathChannels();
@@ -113,8 +115,8 @@ private:
 
         ///////// Input /////////
 
-        /// The settings necessary to analyse and compute data.
-        AnalyserSettings *_analyserSettings;
+        /// The settings necessary to Analyze and compute data.
+        AnalyzerSettings *_analyzerSettings;
         //double _incoming_samplerate = 0.0;   ///< The samplerate of the input data
 
         ///////// Output /////////
@@ -132,5 +134,6 @@ private:
         bool _keep_thread_running;
         std::shared_ptr<DSO::DeviceBase> _device;
 };
-
 }
+#endif
+

@@ -1,60 +1,50 @@
-# OpenHantek [![Build Status](https://travis-ci.org/OpenHantek/openhantek.svg)](https://travis-ci.org/OpenHantek/openhantek)
-OpenHantek is a free software for Hantek (Voltcraft/Darkwire/Protek/Acetech) USB digital storage oscilloscopes based on HantekDSO and has started as an alternative to the official Hantek DSO software for Linux users.
-
-<img alt="Image of main window" src="doc/screenshot_mainwindow.png">
-
-Tested models so far:
-* DSO-2090
+# OpenHantek [![Build Status](https://travis-ci.org/OpenHantek/openhantek.svg)](https://travis-ci.org/OpenHantek/openhantek) [![Build status](https://ci.appveyor.com/api/projects/status/9w4rd5r04ufqafr4/branch/master?svg=true)](https://ci.appveyor.com/project/davidgraeff/openhantek/branch/master)
+OpenHantek is a free software for Hantek (Voltcraft/Darkwire/Protek/Acetech) USB digital storage oscilloscopes based on HantekDSO and has started as an alternative to the official Hantek DSO software.
 
 Supported operating systems:
 * Linux
-* MacOSX (The lack of udev requires you to load the firmware by hand for now)
+* MacOSX
+* Windows (You need to download the [WinUSB driver files](http://libusb-winusb-wip.googlecode.com/files/winusb%20driver.zip) and customize the inf file for your device yourself at the moment)
+
+<img alt="Image of main window" width="350" src="doc/screenshot_mainwindow.png">
+<img alt="Image of main window" width="350" src="doc/screenshot_mainwindow_win.png">
+
+## Install prebuilt binary
+Navigate to the [Releases](https://github.com/OpenHantek/openhantek/releases) page 
 
 ## Building OpenHantek from source
 You need the following packages, to build OpenHantek from source:
 * CMake 3.0+
-* Qt 5+
-* FFTW 3+
-* libusb 1.x
-
-A compiler capable of C++11 (g++5, clang 3.6, Visual Studio 2013). g++4.8 does
-not support all necessary features.
+* Qt 5.3+
+* FFTW 3+ (prebuild files will be downloaded on windows)
+* libusb 1.x (prebuild files will be downloaded on windows)
 
 For debian based systems (Ubuntu, Mint) install named requirements like this:
-> apt-get install cmake libqt5-dev libfftw3-dev
+> apt-get install cmake qttools5-dev-tools libfftw3-dev binutils-dev libusb-1.0-0-dev
 
 For rpm based distributions (Fedora) use this command:
-> dnf install cmake qt5-qtbase-gui qt5-qttools-devel qt5-qttranslations fftw-devel libusbx-devel
+> dnf install cmake qt5-qtbase-gui qt5-qttools-devel qt5-qttranslations fftw-devel libusbx-devel binutils-devel libusb-1.0-0-devel
 
-After you've installed the requirements run the following commands inside the directory of this package:
+For MacOSX use homebrew
+> brew update <br>
+> brew install libusb fftw qt5;
+
+After you've installed the requirements either run **cmake-gui** or run the following commands inside the directory of this package:
 > mkdir build <br>
 > cd build <br>
-> cmake ../<br>
-> make
+> cmake ../ <br>
+> make -j4 (for 4 concurrent compile jobs) <br>
+> make install (optional, for installing only)
 
-You can specify a prefix when running cmake:
+You can specify an install prefix when running cmake:
 > cmake -DCMAKE_INSTALL_PREFIX=/usr
 
 ## Firmware
-Your DSO does not store its firmware permanently and have to be send to the device each time it is connected. Because of copyright reasons we cannot ship the firmware with this software. You have to extract the firmware using openhantek-extractfw and add some rules to udev.
+Your DSO does not store its firmware permanently -- the firmware has to be sent to the device each time it is connected. The `firmware` directory of this project contains the binary firmware extracted from Hantek's Windows drivers, and a udev rule to upload the firmware to the device automatically each time it is plugged in.
 
-### Getting the Windows drivers
-Before using OpenHantek you have to extract the firmware from the official Windows drivers. You can get them from the <a href="http://www.hantek.ru/download.html">Hantek website</a> or automatically download them with the script _fwget.sh_.
-
-### The firmware extraction tool
-Install libbfd (Ubuntu) / binutils (Fedora) and build the tool by typing:
-> make
-
-After building it, you can just run the fwget.sh script inside the openhantek-extractfw directory:
-> sudo ./fwget.sh /usr/local/share/hantek/
-
-You can also do it manually by placing the DSO*1.SYS file into the same directory and running the built binary:
-> ./openhantek-extractfw &lt;driver file&gt;
-
-This should create two .hex files that should be placed into /usr/local/share/hantek/.
-
-### Installing the firmware
-* Copy the 90-hantek.rules file to /etc/udev/rules.d/.
+* You need binutils-dev autoconf automake fxload
+* Install the `firmware/*.hex` files into `/usr/local/share/hantek/`.
+* Install the `firmware/90-hantek.rules` file into `/etc/udev/rules.d/`.
 * install fxload (fxload is a program which downloads firmware to USB  devices  based  on
        AnchorChips  EZ-USB, Cypress EZ-USB FX, or Cypress EZ-USB FX2 microcontrollers.)
 * Add your current user to the **plugdev** group.

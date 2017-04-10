@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += dataAnalyzer.cpp
 
 HEADERS += dataAnalyzer.h  dataAnalyzerSettings.h
+
 unix {
     target.path = /usr/lib
     INSTALLS += target

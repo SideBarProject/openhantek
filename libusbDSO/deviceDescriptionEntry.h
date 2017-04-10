@@ -41,6 +41,7 @@ namespace DSO {
         uint8_t     bulk_endpoint_out; ///< USB endpoint for bulk writing
         uint8_t     bulk_endpoint_in;  ///< USB endpoint for bulk reading
         bool        need_firmware;///< Return true if the device needs firmware to operate
+        std::vector<std::string> firmwareVersionNames;
         /// Like the factory pattern. Create an instance of DeviceBase.
         std::function<DeviceBase*(libusb_device*, const DSODeviceDescription&)> createDevice;
     };

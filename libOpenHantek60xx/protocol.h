@@ -77,6 +77,7 @@ enum class HT6022_CalibrationValues
   */
 enum class HT6022_SampleRate
 {
+#ifdef none
     SR_24MSa  = 0x30, /*!< 24MSa per channel */
     SR_16MSa  = 0x10, /*!< 16MSa per channel */
     SR_8MSa   = 0x08, /*!< 8MSa per channel */
@@ -85,6 +86,17 @@ enum class HT6022_SampleRate
     SR_500KSa = 0x32, /*!< 500KSa per channel */
     SR_200KSa = 0x14, /*!< 200KSa per channel */
     SR_100KSa = 0x0A  /*!< 100KSa per channel */
+#endif
+    SR_48MSa  = 48, /*!< 48MSa */
+    SR_30MSa  = 30, /*!< 30MSa */
+    SR_24MSa  = 24, /*!< 24MSa */
+    SR_16MSa  = 16, /*!< 16MSa per channel */
+    SR_8MSa   =  8, /*!< 8MSa per channel */
+    SR_4MSa   =  4, /*!< 4MSa per channel */
+    SR_1MSa   =  1, /*!< 1MSa per channel */
+    SR_500KSa = 50, /*!< 500KSa per channel */
+    SR_200KSa = 20, /*!< 200KSa per channel */
+    SR_100KSa = 10  /*!< 100KSa per channel */
 };
 
 /**

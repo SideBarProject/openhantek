@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  OpenHantek
+/// \file glgenerator.h
 /// \brief Declares the GlScope class.
 //
 //  Copyright (C) 2008, 2009  Oleg Khudyakov
@@ -28,47 +29,72 @@
 #define GLGENERATOR_H
 
 
-#include <deque>
-#include <memory>
-#include <vector>
-
+#include <QGLWidget>
+#include <QList>
 #include <QObject>
+#include "dataAnalyzer.h"
 
-#include "parameters.h"
+#include "dso.h"
+#include "dsoSettings.h"
 
 #define DIVS_TIME                  10.0 ///< Number of horizontal screen divs
-#define DIVS_VOLTAGE                8.0 ///< Number of vertical screen divs
+//#define DIVS_VOLTAGE                8.0 ///< Number of vertical screen divs
 #define DIVS_SUB                      5 ///< Number of sub-divisions per div
 
-namespace DSOAnalyser {
-    class DataAnalyzer;
-}
-class OpenHantekSettings;
+
+class DataAnalyzer;
+class DsoSettings;
 class GlScope;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///
+/// \class GlArray                                                 glgenerator.h
+/// \brief An array of GLfloat values and it's size.
+class GlArray {
+	public:
+		GlArray();
+		~GlArray();
+		
+		unsigned int getSize();
+		void setSize(unsigned int size);
+		
+		GLfloat *data; ///< Pointer to the array
+
+	protected:
+		unsigned int size; ///< The array size (Number of GLfloat values)
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/// \class GlGenerator                                             glgenerator.h
 /// \brief Generates the vertex arrays for the GlScope classes.
 class GlGenerator : public QObject {
-    Q_OBJECT
-
-    friend class GlScope;
-
+	Q_OBJECT
+	
+	friend class GlScope;
+	
     public:
-        GlGenerator(QObject *parent = 0);
-        void generateGraphs(OpenHantekSettings *settings, std::shared_ptr<DSOAnalyser::DataAnalyzer>& dataAnalyzer);
+		GlGenerator(DsoSettings *settings, QObject *parent = 0);
+		~GlGenerator();
+        void setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> dataAnalyzer);
 
-    protected:
-        void generateGrid();
+	protected:
+		void generateGrid();
+	
+	private:
+        std::shared_ptr<DSOAnalyzer::DataAnalyzer> dataAnalyzer;
 
-    private:
-        std::vector<std::deque<std::vector<float>>> vaChannel[CHANNELMODE_COUNT];
-        std::vector<float> vaGrid[3];
-        unsigned int digitalPhosphorDepth = 0;
-
-    signals:
-        void graphsGenerated(); ///< The graphs are ready to be drawn
+        DsoSettings *settings;
+        QList<QList<GlArray *> > vaChannel[DSO::ChannelMode::CHANNELMODE_COUNT];
+		GlArray vaGrid[3];
+		
+		int digitalPhosphorDepth;
+	
+	public slots:
+		void generateGraphs();
+	
+	signals:
+        void singleShotFinish(); ///< we are in single shot mode a a shot has been taken
+		void graphsGenerated(); ///< The graphs are ready to be drawn
 };
 
 

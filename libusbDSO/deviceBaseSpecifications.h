@@ -39,12 +39,14 @@ public:
     const DSODeviceDescription& getModel() const { return _model; }
     unsigned getChannelCount() const {return _specification.channels; }
     unsigned getUsedChannelCount() const {return _settings.usedChannels; }
-    dsoRecord& getCurrentRecordType() const { return _settings.samplerate.limits->recordTypes[_settings.recordTypeID]; }
+//    dsoRecord& getCurrentRecordType() const { return _settings.samplerate.limits->recordTypes[_settings.recordTypeID]; }
+//    dsoRecord& getCurrentRecordType() const { return _settings.samplerate.recordLengthID; }
     /// \brief Get available record lengths for the current limits mode (either single aka fastMode or multi).
     /// \return List of record types.
-    std::vector<dsoRecord>& getRecordTypes() const { return _settings.samplerate.limits->recordTypes; }
+//    std::vector<dsoRecord>& getRecordTypes() const { return _settings.samplerate.limits->recordTypes; }
 
     dsoGainLevel& getGainLevel(unsigned channel) { return _specification.gainLevel[_settings.voltage[channel].gainID]; }
+
 protected:
     /// The specifications of the device
     dsoSpecification _specification;
