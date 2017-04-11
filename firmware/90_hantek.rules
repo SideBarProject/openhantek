@@ -1,0 +1,9 @@
+# Hantek DSO-6022BE
+# this one loads the firmware
+#SUBSYSTEM=="usb", ATTR{idVendor}=="04b4", ATTR{idProduct}=="6022", RUN+="/sbin/fxload -t fx2 -I /opt/ucc/hantek/sigrok/share/sigrok-firmware/hantek6022be-firmware.hex -s /opt/ucc/hantek/sigrok/share/sigrok-firmware/hantek6022be-loader.hex -D $env{DEVNAME}"
+# here we change the group such that members of plugdev can access the device
+SUBSYSTEM=="usb", ATTRS{idVendor}=="04b4", ATTRS{idProduct}=="6022", MODE="0664", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="04b5", ATTRS{idProduct}=="6022", MODE="0664", GROUP="plugdev"
+# this one is the original sigrok entry
+# I changed it for 04b5:6022
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="608e", MODE="0664", GROUP="plugdev"
