@@ -26,6 +26,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <iostream>
 
 #include <libusb-1.0/libusb.h>
 
@@ -239,11 +240,20 @@ int USBCommunication::bulkReadMulti(unsigned char *data, unsigned int length) {
 /// \param attempts The number of attempts, that are done on timeouts.
 /// \return Number of transferred bytes on success, libusb error code on error.
 int USBCommunication::controlTransfer(unsigned char type, unsigned char request, unsigned char *data, unsigned int length, int value, int index) {
-    if(!handle)
+    if(!handle) {
+        std::cout << "USBCommunication::controlTransfer: no device" << std::endl;
         return LIBUSB_ERROR_NO_DEVICE;
-
+    }
     int attempts = USB_COMM_ATTEMPTS;
     int errorCode = LIBUSB_ERROR_TIMEOUT;
+
+    std::cout << "USBCommunication::controlTransfer: " << std::endl;
+    std::cout << "Request Type: 0x" << std::hex << (int)type << std::endl;
+    std::cout << "Request: 0x" << std::hex << (int) request << std::endl;
+    std::cout << "value: " << value << std::endl;
+    std::cout << "index: " << index << std::endl;
+    std::cout << "data: " << (int)*data << std::endl;
+    std::cout << "length: " << length << std::endl;
     for(int attempt = 0; (attempt < attempts || attempts == -1) && errorCode == LIBUSB_ERROR_TIMEOUT; ++attempt)
         errorCode = libusb_control_transfer(handle, type, request, value, index, data, length, USB_COMM_TIMEOUT);
 

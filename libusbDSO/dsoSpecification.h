@@ -38,17 +38,21 @@ namespace DSO {
     };
 
     struct dsoGainLevel {
+        /// The hardware code to be set to the scope
+        unsigned char hwGain;
         /// The index of the selected gain on the hardware
-        unsigned char gainIndex;
+        double gainIndex;
         /// Available voltage steps in V/screenheight
         double gainSteps;
         /// The sample values at the top of the screen
-        unsigned short int voltage;
+//       unsigned short int voltage;
         // Calibration per channel
         dsoShortMinMax offset[MAX_CHANNELS];
 
-        dsoGainLevel(unsigned char gainIndex, double gainSteps, unsigned short int voltage)
-            : gainIndex(gainIndex), gainSteps(gainSteps), voltage(voltage) {}
+//        dsoGainLevel(unsigned char hwGain, unsigned char gainIndex, double gainSteps, unsigned short int voltage)
+//            : hwGain(hwGain), gainIndex(gainIndex), gainSteps(gainSteps), voltage(voltage) {}
+        dsoGainLevel(unsigned char hwGain, double gainIndex, double gainSteps)
+            : hwGain(hwGain), gainIndex(gainIndex), gainSteps(gainSteps) {}
     };
 
     //////////////////////////////////////////////////////////////////////////////

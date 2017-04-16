@@ -111,6 +111,7 @@ DsoSettings::DsoSettings(QWidget *parent) : QObject(parent) {
 DsoSettings::~DsoSettings() {
 }
 
+
 /// \brief Set the number of channels.
 /// \param channels The new channel count, that will be applied to lists.
 void DsoSettings::setChannelCount(unsigned int channels) {

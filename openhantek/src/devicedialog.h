@@ -21,6 +21,7 @@ class DeviceDialog : public QDialog
 public:
     DeviceDialog(DSO::DeviceList *deviceList, QWidget *parent = 0);
     QString getModelName();
+    QString getFirmwareFilename();
 
 private slots:
     void loadDemoDevice();

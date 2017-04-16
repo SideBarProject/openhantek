@@ -147,6 +147,10 @@ namespace DSO {
     double DeviceBase::getTimebase() {
         return _settings.timebase;
     }
+    void DeviceBase::setFirmwareFilename(std::string filename) {
+        std::cout << "filename set to " << filename << std::endl;
+        _settings.firmwareFilename = filename;
+    }
 
     ErrorCode DeviceBase::setGain(unsigned int channel, double gain)
     {
@@ -157,18 +161,25 @@ namespace DSO {
         if(channel >= _specification.channels)
             return ErrorCode::ERROR_PARAMETER;
         _settings.voltage[channel].gain = gain/DIVS_VOLTAGE;
-        int gainID = -1;
+        char hwGainCode = -1;
+        double gainID;
         for (int i=0;i<_specification.gainLevel.size();++i) {
             std::cout << "DeviceBase::setGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
             if (_specification.gainLevel[i].gainSteps == gain) {
+                hwGainCode = _specification.gainLevel[i].hwGain;
                 gainID = _specification.gainLevel[i].gainIndex;
                 break;
             }
         }
-        if (gainID == -1)
+        if (hwGainCode == -1)
             std::cout << "DeviceBase::setGain: gain " << gain << " not found in specs" << std::endl;
-        else
+        else {
             _settings.voltage[channel].gainID = gainID;
+            std::cout << "setting gain to " << _settings.voltage[channel].gainID << std::endl;
+        }
+        if (updateGain(channel, hwGainCode) != ErrorCode::ERROR_NONE)
+            std::cout << "Error when setting gain" << std::endl;
+
 /*
         // Find lowest gain voltage thats at least as high as the requested
         unsigned gainID;

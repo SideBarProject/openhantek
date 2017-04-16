@@ -96,11 +96,18 @@ void SineWaveDevice::connectDevice(){
     _specification.sampleSize = 8;
     std::cout << "fill gainLevel" << std::endl;
 
-    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,   1.6,  255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,   4,    255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,   8,    255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  16,    255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  40,    255));
+/*
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,  2.5, 1.6,   255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,  5,   4,     255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10,   8,    255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10,  16,    255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10,  40,    255));
+*/
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,  2.5,   1.6 ));   // 200mV/div
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,  5.0,    4   ));  // 500mV/div
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10.0,   8  ));   // 1V/div
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10.0,  16  ));   // 2V/div
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10.0,  40  ));   // 5V/div
 
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_48MHZ,  48e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,2e-6,1));
 //    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_30MHZ,  30e6, DSO::HWRecordLengthID::RECORDLENGTH_128KB,5e-6));
@@ -131,6 +138,7 @@ void SineWaveDevice::connectDevice(){
 
     _specification.availableCoupling.push_back(DSO::Coupling::COUPLING_NONE);
     this->_keep_thread_running = true;
+
 
     for (unsigned c=0; c < _specification.channels; ++c)
        getGainLevel(c).offset[c] = {0,255};
@@ -200,20 +208,28 @@ void SineWaveDevice::run() {
         double downSampling = _settings.samplerate.downsampler;
         std::cout << "SineWaveDemo: no of samples: " << samples << " downsampler: " << downSampling << std::endl;
 
-        int hwgain = _settings.voltage[0].gainID;
-        double gain= _settings.voltage[0].gain;
-        double multFactorCh0 = hwgain/(gain*DIVS_VOLTAGE);
+        double hwgainCh0 = _settings.voltage[0].gainID;
+        double gainCh0= _settings.voltage[0].gain;
+        double multFactorCh0 = hwgainCh0/(gainCh0*DIVS_VOLTAGE);
         double samplingRate = getSamplerate();
         int recordSize = _settings.recordTypeID;
         std::cout << "sampling rate: " << samplingRate << " recordSize: "<< recordSize<< std::endl;
 
-        std::cout << "on channel 0: hwgain: " << hwgain << " volts/div: " << gain << " mult factor: " << multFactorCh0<< std::endl;
+        std::cout << "on channel 0: hwgain: " << hwgainCh0 << " volts/div: " << gainCh0 << " mult factor: " << multFactorCh0<< std::endl;
 
+        /*
+         * now for channel 1
+         */
+        double hwgainCh1 = _settings.voltage[1].gainID;
+        double gainCh1= _settings.voltage[1].gain;
+        double multFactorCh1 = hwgainCh1/(gainCh1*DIVS_VOLTAGE);
+        std::cout << "on channel 1: gain index: " << hwgainCh1 << " volts/div: " << gainCh1 << " mult factor: " << multFactorCh1<< std::endl;
 
-/*
- * create a 1 V, 1 kHz square wave
- */
-        int upperLevel = 256/(gain*multFactorCh0*DIVS_VOLTAGE)+128;          // 128 is the zero level
+        /*
+         * create a 1 V, 1 kHz square wave
+         */
+        int upperLevel = 256.0/(gainCh1*multFactorCh1*DIVS_VOLTAGE)+128;          // 128 is the zero level
+        std::cout << "upperLevel: " << upperLevel << std::endl;
         if (upperLevel > 255)
             upperLevel = 255; // saturation
         int lowerLevel = 128;
@@ -221,20 +237,13 @@ void SineWaveDevice::run() {
         int switchPoint = (int)(samplingRate/(1000.0*downSampling));
         if (switchPoint < 2)
             switchPoint = 2;
-        std::cout << "upperLevel: " << upperLevel << std::endl;
-
-/*
- * now for channel 1
- */
-        hwgain = _settings.voltage[1].gainID;
-        gain= _settings.voltage[1].gain;
-        double multFactorCh1 = hwgain/(gain*DIVS_VOLTAGE);
-        std::cout << "on channel 1: hwgain: " << hwgain << " volts/div: " << gain << " mult factor: " << multFactorCh1<< std::endl;
         std::cout << "switch point: " << switchPoint<< std::endl;
+ ;
+
 /*
  * amplitude for sine wave
  */
-        int sineAmplitude = 256/(gain*multFactorCh0*DIVS_VOLTAGE);
+        double sineAmplitude = 256/(gainCh0*multFactorCh0*DIVS_VOLTAGE);
         std::cout << "sineAmplitude: " << sineAmplitude << std::endl;
         const bool isFastRate = false;
         if (isFastRate) {

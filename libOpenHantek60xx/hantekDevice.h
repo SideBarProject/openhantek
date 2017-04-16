@@ -25,10 +25,18 @@
 
 #pragma once
 
+#include <cmath>
+#include <limits>
+#include <vector>
+#include <iostream>
+#include <memory>
 #include <thread>
 #include <functional>
 #include <chrono>
 #include <future>
+#include <sstream>
+#include <string>
+#include <fstream>
 
 #include "usbCommunication.h"
 #include "usbCommunicationQueues.h"
@@ -50,11 +58,13 @@ class HantekDevice : public DSO::DeviceBase, public DSO::CommunicationThreadQueu
         virtual unsigned getUniqueID() const override;
 
         virtual bool needFirmware() const override;
-        virtual ErrorCode uploadFirmware() override;
+//        virtual ErrorCode uploadFirmware();
+        virtual ErrorCode uploadFirmware();
 
         virtual bool isDeviceConnected() const override;
         virtual void connectDevice() override;
         virtual void disconnectDevice() override;
+        ErrorCode resetDevice(bool enable);
     private:
         std::unique_ptr<DSO::USBCommunication> _device;
         std::unique_ptr<std::thread> _thread;
@@ -93,7 +103,7 @@ class HantekDevice : public DSO::DeviceBase, public DSO::CommunicationThreadQueu
         virtual void updatePretriggerPosition(double pretrigger_pos_in_s) override;
         virtual void updateRecordLength(unsigned int index) override;
         virtual void updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) override;
-        virtual void updateGain(unsigned channel, unsigned char gainIndex, unsigned gainId);
+        virtual ErrorCode updateGain(unsigned channel, unsigned char hwGainCode);
         virtual void updateOffset(unsigned int channel, unsigned short int offsetValue);
         virtual ErrorCode updateTriggerSource(bool special, unsigned int channel);
         virtual ErrorCode updateTriggerLevel(unsigned int channel, double level);

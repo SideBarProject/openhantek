@@ -1,29 +1,31 @@
 #pragma once
+#include <libusb-1.0/libusb.h>
 
-#define HT6022_IR1_REQUEST_TYPE             0X40
-#define HT6022_IR1_REQUEST                  0XE0
-#define HT6022_IR1_VALUE                    0X00
-#define HT6022_IR1_INDEX                    0X00
-#define HT6022_IR1_SIZE                     0X01
-#define HT6022_IR2_REQUEST_TYPE             0X40
-#define HT6022_IR2_REQUEST                  0XE1
-#define HT6022_IR2_VALUE                    0X00
-#define HT6022_IR2_INDEX                    0X00
-#define HT6022_IR2_SIZE                     0X01
-#define HT6022_SR_REQUEST_TYPE              0X40
+#define END_OF_RECORD                       '1'
+#define HT6022_REQUEST_TYPE             LIBUSB_REQUEST_TYPE_VENDOR
+//#define HT6022_IR1_REQUEST_TYPE             0X40
+/* channel 1 voltage range (gain) */
+#define HT6022_CH1_VR_REQUEST               0XE0
+#define HT6022_CH1_VR_VALUE                 0X00
+#define HT6022_CH1_VR_INDEX                 0X00
+#define HT6022_CH1_VR_SIZE                  0X01
+/* channel 2 voltage range (gain) */
+#define HT6022_CH2_VR_REQUEST               0XE1
+#define HT6022_CH2_VR_VALUE                 0X00
+#define HT6022_CH2_VT_INDEX                 0X00
+#define HT6022_CH2_VR_SIZE                  0X01
+/* sampling rate */
 #define HT6022_SR_REQUEST                   0XE2
 #define HT6022_SR_VALUE                     0X00
 #define HT6022_SR_INDEX                     0X00
 #define HT6022_SR_SIZE                      0X01
-#define HT6022_SETCALLEVEL_REQUEST_TYPE     0XC0
-#define HT6022_SETCALLEVEL_REQUEST          0XA2
-#define HT6022_SETCALLEVEL_VALUE            0X08
-#define HT6022_SETCALLEVEL_INDEX            0X00
-#define HT6022_GETCALLEVEL_REQUEST_TYPE     0X40
-#define HT6022_GETCALLEVEL_REQUEST          0XA2
-#define HT6022_GETCALLEVEL_VALUE            0X08
-#define HT6022_GETCALLEVEL_INDEX            0X00
-#define HT6022_READ_CONTROL_REQUEST_TYPE    0X40
+/* read / write firmware */
+#define HT6022_FIRMWARE_REQUEST             0xA0
+#define HT6022_FIRMWARE_INDEX               0x00
+/* read / write EEPROM */
+#define HT6022_EEPROM_REQUEST           	0xa2
+#define HT6022_EEPROM_INDEX             	0x00
+/* read trace */
 #define HT6022_READ_CONTROL_REQUEST         0XE3
 #define HT6022_READ_CONTROL_VALUE           0X00
 #define HT6022_READ_CONTROL_INDEX           0X00
@@ -35,13 +37,14 @@
   */
 enum class HT6022_Error
 {
-     SUCCESS             = 0,
-     ERROR_INVALID_PARAM = -2,
-     ERROR_ACCESS        = -3,
-     ERROR_NO_DEVICE     = -4,
-     ERROR_TIMEOUT       = -7,
-     ERROR_NO_MEM        = -11,
-     ERROR_OTHER         = -99
+     SUCCESS              =  0,
+     ERROR_INVALID_PARAM  = -2,
+     ERROR_ACCESS         = -3,
+     ERROR_NO_DEVICE      = -4,
+     ERROR_TIMEOUT        = -7,
+     ERROR_NO_MEM         = -11,
+     ERROR_FILE_NOT_FOUND = -12,
+     ERROR_OTHER          = -99
 };
 
 /**

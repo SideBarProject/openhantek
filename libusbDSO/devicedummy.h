@@ -10,7 +10,7 @@ public:
     virtual void updatePretriggerPosition(double position);
     virtual void updateRecordLength(unsigned int index);
     virtual void updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate);
-    virtual void updateGain(unsigned channel, unsigned char gain, unsigned gainId);
+    virtual ErrorCode updateGain(unsigned channel, unsigned char gain);
     virtual void updateOffset(unsigned int channel, unsigned short int offsetValue);
     virtual ErrorCode updateTriggerSource(bool special, unsigned int channel);
     virtual ErrorCode updateTriggerLevel(unsigned int channel, double level);

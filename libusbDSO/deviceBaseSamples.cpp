@@ -273,7 +273,7 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
         _samples[channel].resize(sampleCount);
 
         const unsigned gainID  = _settings.voltage[channel].gainID;
-        const double gain_limit = _specification.gainLevel[gainID].voltage;
+//        const double gain_limit = _specification.gainLevel[gainID].voltage;
         const double gain       = _specification.gainLevel[gainID].gainSteps;
         const double offsetReal = _settings.voltage[channel].offsetReal;
         double extra_value      = 0; // For sample sizes of > 8 bit, the computed extra value is stored here.
@@ -282,9 +282,11 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
         // Fastrate uses the entire buffer, no offset in the data buffer for different channels.
         // Non fastrate: The channels data are interleaved. If we have 2 channels for example,
         // all even buffer positions are chan0, all uneven positions belong to chan1.
-        const int chanOffset = fastRate ? 0 : _specification.channels - 1 - channel;
+//        const int chanOffset = fastRate ? 0 : _specification.channels - 1 - channel;
+        const int chanOffset = fastRate ? 0 : channel;
         std::cout << "DeviceBaseSamples::processSamples channel offset: " << chanOffset << std::endl;
         std::cout << "buffer position: " << bufferPosition <<" buffer increment " << buffer_inc << std::endl;
+        std::cout << "channel: " << channel << " chanOffset: " << chanOffset << std::endl;
 
         for(unsigned sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex, bufferPosition += buffer_inc) {
             bufferPosition %= 2*sampleCount;

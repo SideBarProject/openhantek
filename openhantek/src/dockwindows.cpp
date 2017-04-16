@@ -751,7 +751,7 @@ VoltageDock::VoltageDock(DsoSettings *settings, QWidget *parent, Qt::WindowFlags
             this->setCoupling(channel, (DSO::Coupling) this->settings->scope.voltage[channel].misc);
 		else
             this->setMode((DSOAnalyzer::MathMode) this->settings->scope.voltage[channel].misc);
-        this->setGain(channel,  this->settings->scope.voltage[channel].gain);
+        this->setGain(channel, this->settings->scope.voltage[channel].gain);
 		this->setUsed(channel, this->settings->scope.voltage[channel].used);
 	}
 }
@@ -843,14 +843,14 @@ int VoltageDock::setUsed(int channel, bool used) {
 /// \param index The index of the combo box item.
 void VoltageDock::gainSelected(int index) {
 	int channel;
-
+    double gainID;
 	// Which combobox was it?
 	for(channel = 0; channel < this->settings->scope.voltage.count(); ++channel)
 		if(this->sender() == this->gainComboBox[channel])
 			break;
 	
 	// Send signal if it was one of the comboboxes
-//   qDebug() << "VoltageDock::gainSelected on channel: " << channel << endl;
+    qDebug() << "VoltageDock::gainSelected on channel: " << channel << endl;
     if (index >this->gainSteps.size())
         return;
 
@@ -859,7 +859,7 @@ void VoltageDock::gainSelected(int index) {
         this->settings->scope.voltage[channel].gain = this->gainSteps.at(index);
         if (m_device != nullptr) {
             const std::vector<DSO::dsoGainLevel> &gainSpecs = m_device->getGainSpecs();
-            unsigned int gainID=-1;
+            gainID=-1;
             for (int i=0; i<gainSpecs.size();++i) {
                 if (gainSpecs[i].gainSteps == this->settings->scope.voltage[channel].gain) {
                     gainID = gainSpecs[i].gainIndex;
@@ -873,6 +873,7 @@ void VoltageDock::gainSelected(int index) {
                 qDebug() << "gain index set to " << gainID;
             }
         }
+        m_device->setGain(channel,this->settings->scope.voltage[channel].gain);
         emit gainChanged(channel, this->settings->scope.voltage[channel].gain);
     }
 }

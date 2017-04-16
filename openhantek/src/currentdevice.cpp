@@ -111,7 +111,6 @@ void CurrentDevice::resetDevice()
 //   emit validChanged();
 }
 
-
 void CurrentDevice::updateCurves()
 {
     if (!m_analyzer) {

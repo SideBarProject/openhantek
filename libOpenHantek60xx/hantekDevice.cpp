@@ -36,9 +36,6 @@
 
 #include <libusb-1.0/libusb.h>
 
-#include "HT6022BEfw.h"
-#include "HT6022BLfw.h"
-
 #include "hantekDevice.h"
 #include "utils/timestampDebug.h"
 #include "utils/stdStringSplit.h"
@@ -61,8 +58,39 @@ unsigned HantekDevice::getUniqueID() const {
 bool HantekDevice::needFirmware() const {
     return _model.need_firmware;
 }
+ErrorCode HantekDevice::resetDevice(bool enable) {
+    unsigned char reset = (enable) ? 1 : 0;
+    if (reset)
+        std::cout << "Forcing Cypress chip into reset" << std::endl;
+    else
+        std::cout << "Releasing Cypress chip from reset" << std::endl;
+    int error_code = _device->controlWrite(HT6022_FIRMWARE_REQUEST, &reset, 1, 0xe600, HT6022_FIRMWARE_INDEX);
+    if (error_code < 0) {
+        std::cout << "error when forcing Cypress chip into reset " << std::endl;
+        _device->disconnect();
+        return ErrorCode::ERROR_CONNECTION;
+    }
+    return ErrorCode::ERROR_NONE;
+}
 
 ErrorCode HantekDevice::uploadFirmware() {
+
+    std::string line;
+    std::string filename=_settings.firmwareFilename;
+    std::cout << "HantekDevice::uploadFirmware: " << _settings.firmwareFilename << std::endl;
+    unsigned char *dataBuffer;
+    unsigned char checksum,checksumInFile;
+    std::string noOfBytesString;
+    std::string addressString;
+    std::string dataByteString;
+    std::stringstream ss;
+    unsigned short noOfBytes,address;
+    int i;
+
+    if (!std::ifstream(filename)) {
+        std::cout << "File " << filename << "does not exist" ;
+        return ErrorCode::ERROR_BAD_FIRMWARE_FILENAME;
+    }
     int error_code = _device->connect();
     if (error_code != LIBUSB_SUCCESS) {
         libusb_error_name(error_code);
@@ -72,39 +100,46 @@ ErrorCode HantekDevice::uploadFirmware() {
         return (ErrorCode)error_code;
     }
 
-    int fwsize = 0;
-    unsigned char* firmware = nullptr;
-    switch (_model.productID) {
-        case 0X6022:
-            fwsize = HT6022_FIRMWARE_SIZE;
-            firmware = HT6022_Firmware;
-            break;
-        case 0X602A:
-            fwsize = HT6022BL_FIRMWARE_SIZE;
-            firmware = HT6022BL_Firmware;
-            break;
-        default:
-            return ErrorCode::ERROR_PARAMETER;
-    }
+    resetDevice(true);
+    std::ifstream infile(filename);
+    std::cout << "uploading firmware from file " << filename << std::endl;
 
-    unsigned int Size, Value;
-    while (fwsize) {
-        Size  = *firmware + ((*(firmware + 1))<<0x08);
-        firmware = firmware + 2;
-        Value = *firmware + ((*(firmware + 1))<<0x08);
-        firmware = firmware + 2;
-        int error_code = _device->controlWrite(HT6022_FIRMWARE_REQUEST,firmware,Size,Value,HT6022_FIRMWARE_INDEX);
+    while (getline(infile, line))
+    {
+        if (line.at(8)==END_OF_RECORD)
+            break;
+        noOfBytesString = line.substr(1,2);
+        addressString = line.substr(3,4);
+        std::cout << "no Of bytes: " << noOfBytesString << " address: " << addressString << std::endl;
+        noOfBytes = stoi(noOfBytesString,nullptr,16);
+        address = stoi(addressString,nullptr,16);
+        std::cout << "no of Bytes (std::hex)" << std::hex << noOfBytes << " address: " << std::hex << address << std::endl;
+ //       std::cout << line << std::endl;
+        dataBuffer = new unsigned char[noOfBytes];
+        for (i=0;i<noOfBytes;++i) {
+            dataByteString = line.substr(9+i*2,2);
+            dataBuffer[i] = stoi(dataByteString,nullptr,16);
+            std::cout << std::hex << (int)dataBuffer[i] << " ";
+        }
+        checksumInFile = stoi(line.substr(9+i*2,2),nullptr,16);
+        std::cout << std::endl;
+
+        checksum = (address & 0xff) + (address >>8) + noOfBytes;
+//       std::cout << "checksum with address and noOfBytes: " << std::hex << (int) checksum << " checksum in file: " << std::hex << (int) checksumInFile << endl;
+        for (int i=0;i<noOfBytes;++i) {
+            checksum += dataBuffer[i];
+        }
+        checksum =(~checksum) + 1;
+        std::cout << "Checksum: " << std::hex << (int) checksum << " checksum in file: " << std::hex << (int) checksumInFile << std::endl;
+
+        int error_code = _device->controlWrite(HT6022_FIRMWARE_REQUEST, dataBuffer, (unsigned int) noOfBytes, (int) address, HT6022_FIRMWARE_INDEX);
         if (error_code < 0) {
+            std::cout << "load firmare, error after controlWrite " << std::endl;
             _device->disconnect();
             return ErrorCode::ERROR_CONNECTION;
         }
-        firmware = firmware + Size;
-        fwsize--;
+        delete[] dataBuffer;
     }
-
-    _uploadProgress(100);
-    _device->disconnect();
-
     return ErrorCode::ERROR_NONE;
 }
 
@@ -151,15 +186,26 @@ void HantekDevice::connectDevice(){
     _specification.samplerate_single.recordTypes.push_back(DSO::dsoRecord(20480, 1));
     _specification.samplerate_single.recordTypes.push_back(DSO::dsoRecord(65536, 1));
     _specification.sampleSize = 8;
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.08, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.16, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.40, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   0.80, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(1,   1.60, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(2,   4.00, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(5,   8.00, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10, 16.00, 255));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10, 40.00, 255));
+/*
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.08, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.16, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.40, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.80, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   1.60, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,  2.5, 4.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,  5,   8.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  16.00, 255));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  40.00, 255));
+*/
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.08 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.16 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.40 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.80 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   1.60 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,  2.5, 4.00 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,  5,   8.00 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  16.00 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  40.00 ));
 
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_48MHZ,  48e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,2e-6,1));
 //    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_30MHZ,  30e6, DSO::HWRecordLengthID::RECORDLENGTH_128KB,5e-6));
@@ -195,6 +241,7 @@ void HantekDevice::connectDevice(){
 
     for (unsigned c=0; c < _specification.channels; ++c)
        getGainLevel(c).offset[c] = {0,255};
+
     std::cout << "set sample rate to " << getMinSamplerate() << std::endl;
     setSamplerate(getMinSamplerate());
 
@@ -232,9 +279,24 @@ void HantekDevice::updateRecordLength(unsigned int index) {}
 
 void HantekDevice::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) {}
 
-void HantekDevice::updateGain(unsigned channel, unsigned char gainIndex, unsigned gainId)
+ErrorCode HantekDevice::updateGain(unsigned channel, unsigned char hwGainCode)
 {
-    std::cout << "hantekDevice::updateGain on channel: " << channel <<" gainIndex: " << gainIndex << " gainId: " << gainId << std::endl;
+    std::cout << "hantekDevice::updateGain on channel: " << channel <<" gainIndex: " << (int) hwGainCode << std::endl;
+    unsigned char sensitivityRequest;
+    unsigned char newGain = hwGainCode;
+    if (channel == 0)
+        sensitivityRequest = HT6022_CH1_VR_REQUEST;
+    if (channel == 1)
+        sensitivityRequest = HT6022_CH2_VR_REQUEST;
+
+    int error_code = _device->controlWrite(sensitivityRequest, &newGain , 1, HT6022_CH1_VR_VALUE , HT6022_FIRMWARE_INDEX);
+
+    if (error_code < 0) {
+        std::cout << "error " << error_code << " when setting gain on channel " <<channel << " to " << (int) newGain << std::endl;
+        _device->disconnect();
+        return ErrorCode::ERROR_CONNECTION;
+    }
+    return ErrorCode::ERROR_NONE;
 }
 
 void HantekDevice::updateOffset(unsigned int channel, unsigned short offsetValue)
@@ -287,11 +349,11 @@ int HantekDevice::readSamples() {
 }
 
 void HantekDevice::run() {
-/*
-    FILE *fd_ch1,*fd_ch2;
-    fd_ch1 = fopen("/tmp/traceDataCh1.txt","w");
-    fd_ch2 = fopen("/tmp/traceDataCh2.txt","w");
-*/
+
+//    FILE *fd_ch1,*fd_ch2;
+//    fd_ch1 = fopen("/tmp/traceDataCh1.txt","w");
+//    fd_ch2 = fopen("/tmp/traceDataCh2.txt","w");
+
     unsigned char *dataPtr = _data;
     std::cout << "Hantek run thread " << std::endl;
     std::vector<unsigned char> data;
@@ -338,18 +400,12 @@ void HantekDevice::run() {
             break;
         }
         int retCode = _device->bulkReadMulti(&data[0], (int)_dataSize*2);
-/* generate test data on channel 2 */
-//        for (int i=0;i<_dataSize*2;++i)
-
-
 /*
         std::cout << "writing data to file " << std::endl;
         for (int i=0;i<retCode;i+=2) {
           fprintf(fd_ch1,"%d\n",data[i]);
           fprintf(fd_ch2,"%d\n",data[i+1]);
         }
-        fclose(fd_ch1);
-        fclose(fd_ch2);
 */
 //        data.resize((samples);
         std::cout << "processing the data " << std::endl;

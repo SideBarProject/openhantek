@@ -53,7 +53,7 @@ DeviceDialog::DeviceDialog(DSO::DeviceList *deviceList, QWidget *parent)
             connectedDevicesBox->addItem(QString::fromStdString(modelDescription.modelName));
         }
 
-        QComboBox *firmwareVersions = new QComboBox();
+        firmwareVersions = new QComboBox();
         for (int i=0; i<modelDescription.firmwareVersionNames.size();i++)
             firmwareVersions->addItem(QString::fromStdString(modelDescription.firmwareVersionNames[i]));
         loadFirmwareButton = new QPushButton("Load Firmware");
@@ -77,6 +77,9 @@ DeviceDialog::DeviceDialog(DSO::DeviceList *deviceList, QWidget *parent)
     }
 }
 
+QString DeviceDialog::getFirmwareFilename() {
+    return (firmwareVersions->currentText());
+}
 
 void DeviceDialog::loadDemoDevice() {
   //    qDebug() << "load Demo Device" << endl;
@@ -106,11 +109,23 @@ void DeviceDialog::connectDevice() {
 void DeviceDialog::loadFirmware()
 {
     qDebug() << "load firmware" << endl;
+    qDebug() << "firmware: " << firmwareVersions->currentText() << endl;
+
     int index = connectedDevicesBox->currentIndex();
+
 /*
  * download the firmware and check for errors
  */
-    if (connectedDevices[index]->uploadFirmware() == ErrorCode::ERROR_NONE) {
+    if (!QString::compare(firmwareVersions->currentText(),QString("Hoenicke firmware"))) {
+        qDebug() << "Hoenicke firmware selected" << endl;
+        connectedDevices[index]->setFirmwareFilename(std::string("firmware/hoenicke_fw.ihx"));
+    }
+    else {
+        qDebug() << "Hantek firmware selected" << endl;
+        connectedDevices[index]->setFirmwareFilename(std::string("firmware/hantek_fw.ihx"));
+    }
+
+   if (connectedDevices[index]->uploadFirmware() == ErrorCode::ERROR_NONE) {
         qDebug() << "Firmware successfully loaded" << endl;
 /*
  * wait until the scope has rebooted with the new firmware

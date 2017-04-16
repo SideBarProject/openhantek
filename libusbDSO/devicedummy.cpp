@@ -6,8 +6,9 @@ void DeviceDummy::updatePretriggerPosition(double position) {
 }
 void DeviceDummy::updateRecordLength(unsigned int index) {}
 void DeviceDummy::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) {}
-void DeviceDummy::updateGain(unsigned channel, unsigned char gain, unsigned gainId) {
-    std::cout << "deviceDummy: updateGain on channel " << channel << "to " << gain << std::endl;
+ErrorCode DeviceDummy::updateGain(unsigned channel, unsigned char gain) {
+    std::cout << "deviceDummy: updateGain on channel " << channel << " to " << (int)gain  << "(hw gain code)" << std::endl;
+    return ErrorCode::ERROR_NONE;
 }
 void DeviceDummy::updateOffset(unsigned int channel, unsigned short int offsetValue) {}
 

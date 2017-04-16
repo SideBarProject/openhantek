@@ -189,13 +189,12 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
             qDebug() << "sampleCount" << this->dataAnalyzer->sampleCount() << endl;
             qDebug() << "timebase" << settings->scope.horizontal.timebase << endl;
             qDebug() << "DIVS_TIME" << DIVS_TIME << endl;
-/*
+
             qDebug() << "gain " <<  this->settings->scope.voltage[channel].gain << endl;
             qDebug() << "gainID " << this->settings->scope.voltage[channel].gainID << endl;
             qDebug() << "offset " <<  this->settings->scope.voltage[channel].offset << endl;
-*/
-            double multFactor = (double)this->settings->scope.voltage[channel].gainID / (double) this->settings->scope.voltage[channel].gain;
-//            double multFactor=0.625;
+
+            double multFactor = this->settings->scope.voltage[channel].gainID / (double) this->settings->scope.voltage[channel].gain;
             qDebug() << "mult factor: " << multFactor  << endl;
             qDebug() << "sample count from analyzer: " << this->dataAnalyzer->sampleCount() << endl;
             for(unsigned int position = 0; position < this->dataAnalyzer->sampleCount(); ++position) {
@@ -208,7 +207,7 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
             if (channel == 1) {
                 FILE *fd = fopen("/tmp/newsine.txt","w");
                 for (int i=0;i<4000;i+=2)
-                    fprintf(fd,"%f %f\n",vaNewChannel[i],vaNewChannel[i+1]);
+                    fprintf(fd,"8.4%f %8.4f\n",vaNewChannel[i],vaNewChannel[i+1]);
                 fclose(fd);
             }
 

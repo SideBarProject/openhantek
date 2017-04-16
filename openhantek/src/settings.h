@@ -33,6 +33,7 @@
 #include <QPoint>
 #include <QSize>
 #include <QString>
+#include <string>
 
 
 #include "dso.h"
@@ -205,7 +206,7 @@ class DsoSettings : public QObject {
 		DsoSettingsScope scope; ///< All oscilloscope related settings
         DSO::dsoSettingsChannel channels;
         DsoSettingsView view; ///< All view related settings
-	
+
 	public slots:
 		// Saving to and loading from configuration files
 		int load(const QString &fileName = QString());

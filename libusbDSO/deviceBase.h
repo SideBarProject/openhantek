@@ -95,6 +95,8 @@ class DeviceBase : public DeviceBaseSamples {
         ///         method return true.
         virtual bool needFirmware() const = 0;
 
+        void setFirmwareFilename(std::string filename);
+
         /// \brief Upload firmware to the DSO. If no firmware is required (needFirmware==false)
         ///        this method will return ERROR_NONE. It can only be called if no connection
         ///        to the device has been made so far (isDeviceConnected==false) otherwise returns
@@ -169,6 +171,7 @@ class DeviceBase : public DeviceBaseSamples {
         /// Status message about the oscilloscope (int messageID)
         std::function<void(int)> _statusMessage = [](int){};
 
+
 protected:
         /// \brief Reset settings to a reasonable default state.
         /// Should be called by connectDevice().
@@ -177,7 +180,7 @@ protected:
         /// \brief Sets the gain for the given channel.
         /// \param channel The channel that should be set.
         /// \param gain The gain that should be met (V/div).
-        virtual void updateGain(unsigned channel, unsigned char gainIndex, unsigned gainId) = 0;
+        virtual ErrorCode updateGain(unsigned channel, unsigned char gainIndex) = 0;
 
         /// \brief Set the offset for the given channel.
         /// \param channel The channel that should be set.

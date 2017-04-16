@@ -67,6 +67,7 @@ void DeviceList::hotplugAdd(libusb_device *device) {
         */
         return;
     }
+    std::cout << "Found hantek scope with Product Id: " << std::hex << descriptor.idProduct << " and Vendor Id: " << std::hex << descriptor.idVendor << std::endl;
     std::cout << "Found device at "
               << (unsigned)libusb_get_bus_number(device)
               << " " << (unsigned)libusb_get_device_address(device)

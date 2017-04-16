@@ -21,12 +21,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += hantekDevice.cpp init.cpp HT6022BEfw.c HT6022BLfw.c
+SOURCES += hantekDevice.cpp init.cpp
+#SOURCES += hantekDevice.cpp init.cpp HT6022BEfw.c HT6022BLfw.c
 
-HEADERS += hantekDevice.h  HT6022BEfw.h  HT6022BLfw.h  init.h protocol.h HT6022BEfw.h HT6022BLfw.h
+#HEADERS += hantekDevice.h  HT6022BEfw.h  HT6022BLfw.h  init.h protocol.h HT6022BEfw.h HT6022BLfw.h
+HEADERS += hantekDevice.h init.h protocol.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
 }
 
 INCLUDEPATH += ../libusbDSO
+
+DISTFILES += \
+    firmware/90_hantek.rules \
+    firmware/hantek_fw.ihx \
+    firmware/hönicke_fw.ihx

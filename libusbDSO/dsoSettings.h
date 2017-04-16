@@ -122,7 +122,7 @@ namespace DSO {
     /// \struct dsoSettingsVoltage
     /// \brief Stores the current amplification settings of the device.
     struct dsoSettingsChannel {
-        unsigned int gainID = 0;   ///< The gain id (@see DSO::dsoSpecification.gainLevel[gainID]
+        double gainID = 0;   ///< The gain id (@see DSO::dsoSpecification.gainLevel[gainID]
         double gain;               ///< The gain in V/div
         int misc; ///< Different enums, coupling for real- and mode for math-channels
         std::string name;          ///< Name of this channel
@@ -137,6 +137,7 @@ namespace DSO {
     /// \struct dsoSettings
     /// \brief Stores the current settings of the device.
     struct dsoSettings {
+        std::string firmwareFilename;
         dsoSettingsSamplerate samplerate;    ///< The samplerate settings
         std::array<dsoSettingsChannel,MAX_CHANNELS> voltage; ///< The amplification settings
         dsoSettingsTrigger trigger;          ///< The trigger settings
