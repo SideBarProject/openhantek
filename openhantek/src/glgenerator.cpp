@@ -135,26 +135,24 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
 
 
         qDebug() << "GlGenerator::generateGraphs format TY" << endl;
-/*
-        qDebug() << "Dso::CHANNELMODE_VOLTAGE " << Dso::CHANNELMODE_VOLTAGE << endl;
         qDebug() << "this->settings->scope.voltage.count()" << this->settings->scope.voltage.count() <<endl;
-*/
+
         for (int i=0; i<this->settings->scope.voltage.count();i++) {
-/*
+
         if(this->settings->scope.voltage[i].used)
             qDebug() <<"channel "<<i<<" is used " << endl;
         else
             qDebug() <<"channel "<<i << " is not used " << endl;
-*/
+
         }
 
-//          qDebug() << "needed size " << this->dataAnalyzer->sampleCount() << endl;
-//        qDebug() << "no of channels " << this->settings->scope.voltage.count() << endl;
+        qDebug() << "needed size " << this->dataAnalyzer->sampleCount() << endl;
+        qDebug() << "no of channels " << this->settings->scope.voltage.count() << endl;
 
         for(int channel = 0; channel < this->settings->scope.voltage.count(); ++channel) {
 //        for(int channel = 0; channel < 2; ++channel) {
             if(!this->settings->scope.voltage[channel].used)
-                break;
+                continue;
             for(int index = 0; index < this->digitalPhosphorDepth; ++index) {
                 if(this->vaChannel[mode][channel][index]->getSize() != neededSize)
                     this->vaChannel[mode][channel][index]->setSize(0);
