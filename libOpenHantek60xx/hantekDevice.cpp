@@ -197,15 +197,15 @@ void HantekDevice::connectDevice(){
     _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  16.00, 255));
     _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  40.00, 255));
 */
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.08 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.16 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.40 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   0.80 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1,   1.60 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,  2.5, 4.00 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,  5,   8.00 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  16.00 ));
-    _specification.gainLevel.push_back(DSO::dsoGainLevel( 10, 1,  40.00 ));
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1.0,    0.08 ));  // 10  mV
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1.0,    0.16 ));  // 20  mV
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1.0,    0.40 ));  // 50  mV
+    _specification.gainLevel.push_back(DSO::dsoGainLevel(10,  1.0,    0.80 ));  // 100 mV
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 5,  2.5,    1.60 ));  // 200 mV
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 2,  5.0,    4.00 ));  // 500 mV
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10.0,   8.00 ));  // 1V
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10.0,  16.00 ));  // 2V
+    _specification.gainLevel.push_back(DSO::dsoGainLevel( 1,  10.0,  40.00 ));  // 5V
 
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_48MHZ,  48e6, DSO::HWRecordLengthID::RECORDLENGTH_1KB,2e-6,1));
 //    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_30MHZ,  30e6, DSO::HWRecordLengthID::RECORDLENGTH_128KB,5e-6));
@@ -281,7 +281,7 @@ void HantekDevice::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsign
 
 ErrorCode HantekDevice::updateGain(unsigned channel, unsigned char hwGainCode)
 {
-    std::cout << "hantekDevice::updateGain on channel: " << channel <<" gainIndex: " << (int) hwGainCode << std::endl;
+    std::cout << "hantekDevice::updateGain on channel: " << channel <<" hw gain Code: " << (int) hwGainCode << std::endl;
     unsigned char sensitivityRequest;
     unsigned char newGain = hwGainCode;
     if (channel == 0)
@@ -350,9 +350,9 @@ int HantekDevice::readSamples() {
 
 void HantekDevice::run() {
 
-//    FILE *fd_ch1,*fd_ch2;
-//    fd_ch1 = fopen("/tmp/traceDataCh1.txt","w");
-//    fd_ch2 = fopen("/tmp/traceDataCh2.txt","w");
+    FILE *fd_ch1,*fd_ch2;
+    fd_ch1 = fopen("/tmp/traceDataCh1.txt","w");
+    fd_ch2 = fopen("/tmp/traceDataCh2.txt","w");
 
     unsigned char *dataPtr = _data;
     std::cout << "Hantek run thread " << std::endl;
@@ -400,13 +400,13 @@ void HantekDevice::run() {
             break;
         }
         int retCode = _device->bulkReadMulti(&data[0], (int)_dataSize*2);
-/*
+
         std::cout << "writing data to file " << std::endl;
         for (int i=0;i<retCode;i+=2) {
           fprintf(fd_ch1,"%d\n",data[i]);
           fprintf(fd_ch2,"%d\n",data[i+1]);
         }
-*/
+
 //        data.resize((samples);
         std::cout << "processing the data " << std::endl;
         processSamples(data);

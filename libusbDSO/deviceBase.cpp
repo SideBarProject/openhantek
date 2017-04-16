@@ -175,7 +175,7 @@ namespace DSO {
             std::cout << "DeviceBase::setGain: gain " << gain << " not found in specs" << std::endl;
         else {
             _settings.voltage[channel].gainID = gainID;
-            std::cout << "setting gain to " << _settings.voltage[channel].gainID << std::endl;
+            std::cout << "setting gain to " << _settings.voltage[channel].gainID << " hw gain code: " << (int) hwGainCode <<std::endl;
         }
         if (updateGain(channel, hwGainCode) != ErrorCode::ERROR_NONE)
             std::cout << "Error when setting gain" << std::endl;
