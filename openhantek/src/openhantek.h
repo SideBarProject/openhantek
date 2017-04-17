@@ -172,8 +172,8 @@ protected:
 		void updateOffset(unsigned int channel);
 		void updateUsed(unsigned int channel);
 		void updateVoltageGain(unsigned int channel);
-        void updateMathMode(DSOAnalyzer::MathMode mathMode);
-		
+       void updateMathMode();
+//        void updateMathMode(DSOAnalyzer::MathMode mathmode);
 #ifdef DEBUG
 		void sendCommand();
 #endif

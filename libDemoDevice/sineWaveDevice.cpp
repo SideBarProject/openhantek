@@ -234,7 +234,8 @@ void SineWaveDevice::run() {
         if (upperLevel > 255)
             upperLevel = 255; // saturation
         int lowerLevel = 128;
-        int level = lowerLevel;
+        int level;
+
         int switchPoint = (int)(samplingRate/(2000.0*downSampling));
         if (switchPoint < 2)
             switchPoint = 2;
@@ -262,12 +263,14 @@ void SineWaveDevice::run() {
             /* generate a horizontal offset which will allow to test triggering */
             xOffset = horOffsetDis(gen);
             xOffsetInt = xOffset*samplingRate/(1000.0*downSampling);
-            std::cout << "x offset: " << xOffset << "x int: " << xOffsetInt << std::endl;
+            if (xOffsetInt < switchPoint)
+                level = lowerLevel;
+            else
+                level = upperLevel;
+//            std::cout << "x offset: " << xOffset << "x int: " << xOffsetInt << std::endl;
 
             x=xOffset;
             unsigned int j;
-            std::cout << "start value: " << xOffset << std::endl;
-
             for (unsigned int i=0;i<data.size()/2;i++) {
                 rawSine = sin((2*M_PI*x))*(sineAmplitude)*dis(gen)+ 128;
                 if (rawSine > 255)
@@ -278,7 +281,7 @@ void SineWaveDevice::run() {
                 //                data[i] = (sin(x))*dis(gen)*64;        // sin(x+shift_factor)*dis(gen)*128;
                 j = i+xOffsetInt;
                 if (!(j%switchPoint)) {
-                    std::cout << "switched with j= " << j << " i= " << i<< std::endl;
+//                    std::cout << "switched with j= " << j << " i= " << i<< std::endl;
                     if (level == upperLevel)
                         level = lowerLevel;
                     else
@@ -288,7 +291,7 @@ void SineWaveDevice::run() {
                 //                data[i+1] = int(x) % 255;             // triangle
                 x += 1000.0*downSampling/samplingRate;
             }
-
+/*
             fd=fopen("/tmp/sine.txt","w");
             fprintf(fd,"# x offset: %10.4f",xOffset);
             for (int i=0;i<4000;i+=2)
@@ -300,7 +303,7 @@ void SineWaveDevice::run() {
             for (int i=1;i<4000;i+=2)
                 fprintf(fd,"%d\n",data[i]);
             fclose(fd);
-
+*/
         }
 
         processSamples(data);

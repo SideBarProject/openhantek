@@ -345,8 +345,10 @@ void OpenHantekMainWindow::connectSignals() {
 //	connect(this->voltageDock, SIGNAL(usedChanged(unsigned int, bool)), this->dsoWidget, SLOT(updateVoltageUsed(unsigned int, bool)));
 //	connect(this->voltageDock, SIGNAL(couplingChanged(unsigned int, Dso::Coupling)), this->dsoControl, SLOT(setCoupling(unsigned int, Dso::Coupling)));
     connect(this->voltageDock, SIGNAL(couplingChanged(unsigned int, DSO::Coupling)), this->dsoWidget, SLOT(updateVoltageCoupling(unsigned int)));
+
     connect(this->voltageDock, SIGNAL(modeChanged(DSOAnalyzer::MathMode)), this->dsoWidget, SLOT(updateMathMode()));
-    connect(this->voltageDock, SIGNAL(modeChanged(DSOAnalyzer::MathMode)), this, SLOT(updateMathMode(DSOAnalyzer::MathMode mathMode)));
+//    connect(this->voltageDock, SIGNAL(modeChanged(DSOAnalyzer::MathMode)), this, SLOT(updateMathMode(DSOAnalyzer::MathMode mathMode)));
+    connect(this->voltageDock, SIGNAL(modeChanged(DSOAnalyzer::MathMode)), this, SLOT(updateMathMode()));
 
 	connect(this->voltageDock, SIGNAL(gainChanged(unsigned int, double)), this, SLOT(updateVoltageGain(unsigned int)));
 	connect(this->voltageDock, SIGNAL(gainChanged(unsigned int, double)), this->dsoWidget, SLOT(updateVoltageGain(unsigned int)));
@@ -826,14 +828,28 @@ void OpenHantekMainWindow::updateUsed(unsigned int channel) {
 //			this->dsoControl->setChannelUsed(channelCounter, mathUsed | this->settings->scope.voltage[channelCounter].used | this->settings->scope.spectrum[channelCounter].used);
 //	}
 }
-void OpenHantekMainWindow::updateMathMode(DSOAnalyzer::MathMode mathMode) {
-    qDebug() << "OpenHanteMainWindow update dataAnalyzer settings to  mathmode: " << (int)mathMode  << endl;
+
+void OpenHantekMainWindow::updateMathMode() {
+    qDebug() << "OpenHanteMainWindow update dataAnalyzer settings" << endl;
+    DSOAnalyzer::MathMode mathmode = (DSOAnalyzer::MathMode) settings->scope.voltage[settings->scope.physicalChannels].misc;
+    qDebug() << "mathMode: " << (int) mathmode << endl;
+
+    analyzerSettings = dataAnalyzer->getAnalyzerSettings();
+    analyzerSettings->mathmode = mathmode;
+    dataAnalyzer->setAnalyzerSettings(analyzerSettings);
+
+}
+
+/*
+void OpenHantekMainWindow::updateMathMode(DSOAnalyzer::MathMode mathmode) {
+    qDebug() << "OpenHanteMainWindow update dataAnalyzer settings mathmode: " << (int)mathmode << endl;
+
 
     analyzerSettings = dataAnalyzer->getAnalyzerSettings();
     analyzerSettings->mathmode = mathMode;
     dataAnalyzer->setAnalyzerSettings(analyzerSettings);
 }
-
+*/
 /// \brief Sets the gain of the oscilloscope for the given channel.
 /// \param channel The channel that got a new gain value.
 void OpenHantekMainWindow::updateVoltageGain(unsigned int channel) {

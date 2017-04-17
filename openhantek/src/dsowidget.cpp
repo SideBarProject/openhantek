@@ -423,7 +423,7 @@ void DsoWidget::updateVoltageCoupling(unsigned int channel) {
 
 /// \brief Handles modeChanged signal from the voltage dock.
 void DsoWidget::updateMathMode() {
-//    qDebug() << "dsowidget update math mode" << endl;
+    qDebug() << "dsowidget update math mode" << endl;
     this->measurementMiscLabel[this->settings->scope.physicalChannels]->setText(Dso::mathModeString((DSOAnalyzer::MathMode) this->settings->scope.voltage[this->settings->scope.physicalChannels].misc));
 
 }

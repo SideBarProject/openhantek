@@ -93,16 +93,16 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
     void GlGenerator::generateGraphs() {
 	// Adapt the number of graphs
     qDebug() << "GlGenerator::generateGraphs: no of modes: " << DSO::ChannelMode::CHANNELMODE_COUNT << endl;
-    qDebug() << "format: " << this->settings->scope.horizontal.format << endl;
+//    qDebug() << "format: " << this->settings->scope.horizontal.format << endl;
 
     for(int mode = DSO::ChannelMode::CHANNELMODE_VOLTAGE; mode < DSO::ChannelMode::CHANNELMODE_COUNT; ++mode) {
-        qDebug() << "vaChannel["<<mode<<"].count: " << this->vaChannel[mode].count() << endl;
+//        qDebug() << "vaChannel["<<mode<<"].count: " << this->vaChannel[mode].count() << endl;
 		for(int channel = this->vaChannel[mode].count(); channel < this->settings->scope.voltage.count(); ++channel)
 			this->vaChannel[mode].append(QList<GlArray *>());
 		for(int channel = this->settings->scope.voltage.count(); channel < this->vaChannel[mode].count(); ++channel)
 			this->vaChannel[mode].removeLast();
 	}
-    qDebug() << "before digital phosphor" << endl;
+//    qDebug() << "before digital phosphor" << endl;
 
     // Set digital phosphor depth to one if we don't use it
 	if(this->settings->view.digitalPhosphor)
@@ -132,7 +132,6 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
     switch(this->settings->scope.horizontal.format) {
 
     case DSO::GraphFormat::GRAPHFORMAT_TY:
-
 
         qDebug() << "GlGenerator::generateGraphs format TY" << endl;
         qDebug() << "this->settings->scope.voltage.count()" << this->settings->scope.voltage.count() <<endl;

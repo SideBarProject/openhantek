@@ -887,8 +887,8 @@ void VoltageDock::miscSelected(int index) {
 	// Which combobox was it?
     qDebug() << "misc selected " << endl;
 	for(channel = 0; channel < this->settings->scope.voltage.count(); ++channel)
-//        if(this->sender() == this->miscComboBox[channel])
-//            break;
+        if(this->sender() == this->miscComboBox[channel])
+            break;
 
 	// Send signal if it was one of the comboboxes
 	if(channel < this->settings->scope.voltage.count()) {
