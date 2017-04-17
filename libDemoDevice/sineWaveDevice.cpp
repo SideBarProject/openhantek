@@ -180,7 +180,8 @@ void SineWaveDevice::connectDevice(){
 void SineWaveDevice::run() {
 
     FILE *fd;
-    double x;
+    double x,xOffset;
+    int xOffsetInt;
     std::cout << "SineWaveDevice::run()" << std::endl;
     std::vector<unsigned char> data;
     std::vector<unsigned char> ch1Data;           // data for 1 period
@@ -189,7 +190,7 @@ void SineWaveDevice::run() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.9,1.0);
-
+    std::uniform_real_distribution<> horOffsetDis(0.0,1.0);
     int rawSine;
 
     if (!_keep_thread_running)
@@ -234,7 +235,7 @@ void SineWaveDevice::run() {
             upperLevel = 255; // saturation
         int lowerLevel = 128;
         int level = lowerLevel;
-        int switchPoint = (int)(samplingRate/(1000.0*downSampling));
+        int switchPoint = (int)(samplingRate/(2000.0*downSampling));
         if (switchPoint < 2)
             switchPoint = 2;
         std::cout << "switch point: " << switchPoint<< std::endl;
@@ -252,41 +253,54 @@ void SineWaveDevice::run() {
             data.resize(samples);
             for (unsigned i=0;i<data.size();++i) {
                 data[i] = sin(x)*dis(gen)*255;
+                /* jump back and forth to test triggering */
                 x += 1000.0*downSampling/samplingRate;    // should correspond to 1 kHz and does so if the sampling rate is 1 MHz
             }
         } else {
             std::cout << "SineWaveDevice::run in normal mode" << std::endl;
             data.resize(samples);
-            x=0.0;
-            for (unsigned i=0;i<data.size();i+=2) {
+            /* generate a horizontal offset which will allow to test triggering */
+            xOffset = horOffsetDis(gen);
+            xOffsetInt = xOffset*samplingRate/(1000.0*downSampling);
+            std::cout << "x offset: " << xOffset << "x int: " << xOffsetInt << std::endl;
+
+            x=xOffset;
+            unsigned int j;
+            std::cout << "start value: " << xOffset << std::endl;
+
+            for (unsigned int i=0;i<data.size()/2;i++) {
                 rawSine = sin((2*M_PI*x))*(sineAmplitude)*dis(gen)+ 128;
                 if (rawSine > 255)
                     rawSine =255;
                 if (rawSine < 0)
                     rawSine = 0;
-                data[i] = rawSine;
+                data[2*i] = rawSine;
                 //                data[i] = (sin(x))*dis(gen)*64;        // sin(x+shift_factor)*dis(gen)*128;
-                if (!(i%(switchPoint))) {
+                j = i+xOffsetInt;
+                if (!(j%switchPoint)) {
+                    std::cout << "switched with j= " << j << " i= " << i<< std::endl;
                     if (level == upperLevel)
                         level = lowerLevel;
                     else
                         level = upperLevel;
                 }
-                data[i+1]=level;  // rectangular wave at 1 kHz
+                data[2*i+1]=level;  // rectangular wave at 1 kHz
                 //                data[i+1] = int(x) % 255;             // triangle
                 x += 1000.0*downSampling/samplingRate;
             }
-/*
+
             fd=fopen("/tmp/sine.txt","w");
+            fprintf(fd,"# x offset: %10.4f",xOffset);
             for (int i=0;i<4000;i+=2)
                 fprintf(fd,"%d\n",data[i]);
             fclose(fd);
 
             fd=fopen("/tmp/square.txt","w");
+            fprintf(fd,"# x offset: %d",xOffsetInt);
             for (int i=1;i<4000;i+=2)
                 fprintf(fd,"%d\n",data[i]);
             fclose(fd);
-*/
+
         }
 
         processSamples(data);

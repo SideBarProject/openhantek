@@ -85,6 +85,7 @@ HorizontalDock::HorizontalDock(DsoSettings *settings, QWidget *parent, Qt::Windo
 	
 	this->recordLengthLabel = new QLabel(tr("Record length"));
     this->recordLengthComboBox = new QComboBox();
+
     QList<QString> recordLength;
     recordLength << "1016" << "130048" << "5223264" << "1047552";
     this->recordLengthComboBox->addItems(recordLength);
@@ -884,18 +885,21 @@ void VoltageDock::miscSelected(int index) {
 	int channel;
 	
 	// Which combobox was it?
+    qDebug() << "misc selected " << endl;
 	for(channel = 0; channel < this->settings->scope.voltage.count(); ++channel)
-		if(this->sender() == this->miscComboBox[channel])
-			break;
-	
+//        if(this->sender() == this->miscComboBox[channel])
+//            break;
+
 	// Send signal if it was one of the comboboxes
 	if(channel < this->settings->scope.voltage.count()) {
 		this->settings->scope.voltage[channel].misc = index;
 		if(channel < (int) this->settings->scope.physicalChannels)
             emit couplingChanged(channel, (DSO::Coupling) this->settings->scope.voltage[channel].misc);
-		else
+        else {
+            qDebug() << "Sending mode changed with math mode: " << (int) this->settings->scope.voltage[channel].misc << endl;
             emit modeChanged((DSOAnalyzer::MathMode) this->settings->scope.voltage[channel].misc);
-	}
+        }
+    }
 }
 
 /// \brief Called when the used checkbox is switched.

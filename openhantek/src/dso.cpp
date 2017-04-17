@@ -85,7 +85,7 @@ namespace Dso {
                 qDebug() << "mathModeString: CH2 - CH1" << endl;
                 return QApplication::tr("CH1 - CH2");
             case DSOAnalyzer::MathMode::SUB_CH2_FROM_CH1:
-                qDebug() << "mathModeString: CH1 1 CH2" << endl;
+                qDebug() << "mathModeString: CH2 - CH1" << endl;
 				return QApplication::tr("CH2 - CH1");
 			default:
 				return QString();

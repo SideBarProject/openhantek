@@ -346,6 +346,8 @@ void OpenHantekMainWindow::connectSignals() {
 //	connect(this->voltageDock, SIGNAL(couplingChanged(unsigned int, Dso::Coupling)), this->dsoControl, SLOT(setCoupling(unsigned int, Dso::Coupling)));
     connect(this->voltageDock, SIGNAL(couplingChanged(unsigned int, DSO::Coupling)), this->dsoWidget, SLOT(updateVoltageCoupling(unsigned int)));
     connect(this->voltageDock, SIGNAL(modeChanged(DSOAnalyzer::MathMode)), this->dsoWidget, SLOT(updateMathMode()));
+    connect(this->voltageDock, SIGNAL(modeChanged(DSOAnalyzer::MathMode)), this, SLOT(updateMathMode(DSOAnalyzer::MathMode mathMode)));
+
 	connect(this->voltageDock, SIGNAL(gainChanged(unsigned int, double)), this, SLOT(updateVoltageGain(unsigned int)));
 	connect(this->voltageDock, SIGNAL(gainChanged(unsigned int, double)), this->dsoWidget, SLOT(updateVoltageGain(unsigned int)));
     connect(this->m_currentDevice, SIGNAL(specificationsChanged()), this->voltageDock, SLOT(updateSpecifications()));
@@ -798,7 +800,7 @@ void OpenHantekMainWindow::updateOffset(unsigned int channel) {
 }
 
 /// \brief Sets the state of the given oscilloscope channel.
-/// \param channel The channel whose state has changed.mathMode;
+/// \param channel The channel whose state has changed;
 
 void OpenHantekMainWindow::updateUsed(unsigned int channel) {
 	if(channel >= (unsigned int) this->settings->scope.voltage.count())
@@ -824,14 +826,11 @@ void OpenHantekMainWindow::updateUsed(unsigned int channel) {
 //			this->dsoControl->setChannelUsed(channelCounter, mathUsed | this->settings->scope.voltage[channelCounter].used | this->settings->scope.spectrum[channelCounter].used);
 //	}
 }
-void OpenHantekMainWindow::updateMathMode() {
-    qDebug() << "OpenHanteMainWindow update dataAnalyzer settings" << endl;
+void OpenHantekMainWindow::updateMathMode(DSOAnalyzer::MathMode mathMode) {
+    qDebug() << "OpenHanteMainWindow update dataAnalyzer settings to  mathmode: " << (int)mathMode  << endl;
 
-    QComboBox *m_sender = (QComboBox *) QObject::sender();
-    int mathMode = m_sender->currentIndex();
-    qDebug() << "math mode: " << mathMode << endl;
     analyzerSettings = dataAnalyzer->getAnalyzerSettings();
-    analyzerSettings->mathmode = (DSOAnalyzer::MathMode) mathMode;
+    analyzerSettings->mathmode = mathMode;
     dataAnalyzer->setAnalyzerSettings(analyzerSettings);
 }
 

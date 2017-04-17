@@ -179,18 +179,17 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
 
             qDebug() << "sample rate: " << settings->scope.horizontal.samplerate << endl;
             qDebug() << "interval: " << sampleValues.interval <<" timebase: " << this->settings->scope.horizontal.timebase << endl;
-//            double horizontalFactor = sampleValues.interval / this->settings->scope.horizontal.timebase;
-//            double horizontalFactor = 0.000001 / this->settings->scope.horizontal.timebase;
+
             double horizontalFactor = sampleValues.interval / this->settings->scope.horizontal.timebase;
             qDebug() << "channel: " << channel << endl;
-            qDebug() << "horizontalFactor: " << horizontalFactor;
-            qDebug() << "sampleCount" << this->dataAnalyzer->sampleCount() << endl;
-            qDebug() << "timebase" << settings->scope.horizontal.timebase << endl;
-            qDebug() << "DIVS_TIME" << DIVS_TIME << endl;
+            qDebug() << " horizontalFactor: " << horizontalFactor;
+            qDebug() << " sampleCount" << this->dataAnalyzer->sampleCount();
+            qDebug() << " timebase" << settings->scope.horizontal.timebase;
+            qDebug() << " DIVS_TIME" << DIVS_TIME << endl;
 
-            qDebug() << "gain " <<  this->settings->scope.voltage[channel].gain << endl;
-            qDebug() << "gainID " << this->settings->scope.voltage[channel].gainID << endl;
-            qDebug() << "offset " <<  this->settings->scope.voltage[channel].offset << endl;
+            qDebug() << "gain " <<  this->settings->scope.voltage[channel].gain;
+            qDebug() << " gainID " << this->settings->scope.voltage[channel].gainID;
+            qDebug() << " offset " <<  this->settings->scope.voltage[channel].offset << endl;
 
             double multFactor = this->settings->scope.voltage[channel].gainID / (double) this->settings->scope.voltage[channel].gain;
             qDebug() << "mult factor: " << multFactor  << endl;
@@ -202,13 +201,20 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
                 //vaNewChannel[arrayPosition++] = (sampleValues.sample[position]*4-2.0) /this->settings->scope.voltage[channel].gain + this->settings->scope.voltage[channel].offset;
                 vaNewChannel[arrayPosition++] = (sampleValues.sample[position]-128)*multFactor/32.0+this->settings->scope.voltage[channel].offset;
             }
-            if (channel == 1) {
+            /*
+            if (channel == 2) {
                 FILE *fd = fopen("/tmp/newsine.txt","w");
                 for (int i=0;i<4000;i+=2)
-                    fprintf(fd,"8.4%f %8.4f\n",vaNewChannel[i],vaNewChannel[i+1]);
+                    fprintf(fd,"8.4%f %8.4f\n",vaNewChannel[i],vaNewChannel[i+1]);                 
+                fclose(fd);
+
+            if (channel == 2) {
+                FILE *fd = fopen("/tmp/newsine.txt","w");
+                for (int i=0;i<2000;i++)
+                    fprintf(fd,"%f\n",sampleValues.sample[i]);
                 fclose(fd);
             }
-
+             */
         }
         break;
 

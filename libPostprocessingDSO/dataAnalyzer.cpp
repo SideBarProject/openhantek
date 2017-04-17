@@ -113,7 +113,6 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
 
         std::cout << "DataAnalyzer:: copySamples() downsampling rate: " << downsamplingRate << std::endl;
         std::cout << "DataAnalyzer::copySamples() samplerate: " << samplerate << std::endl;
-//       samplerate = 100000;      // 1 MHz
 
         const double interval = 1.0 * (double) downsamplingRate / (samplerate);
         std::cout << "interval: " << interval << std::endl;
@@ -160,23 +159,22 @@ void DataAnalyzer::computeMathChannels()
     std::vector<double> &resultData = this->_analyzedData[math_channel_id].samples.voltage.sample;
 
     std::cout << "_analyzerSettings->mathmode: " << (int)_analyzerSettings->mathmode << std::endl;
-    _analyzerSettings->mathmode = MathMode::ADD_CH1_CH2;
 
     switch(_analyzerSettings->mathmode) {
     case MathMode::ADD_CH1_CH2:
         std::cout << "math mode add" << std::endl;
         for(unsigned i=0;i<_maxSamples;++i)
-            resultData.push_back(*(ch1Iterator++) + *(ch2Iterator++));
+            resultData.push_back(*(ch1Iterator++) + *(ch2Iterator++)-128);  // calculation (v1-128) + (v2-128) + 128;
         break;
     case MathMode::SUB_CH2_FROM_CH1:
             std::cout << "math mode ch2 - ch1" << std::endl;
             for(unsigned i=0;i<_maxSamples;++i)
-                resultData.push_back(*(ch1Iterator++) - *(ch2Iterator++));
+                resultData.push_back(*(ch1Iterator++) - *(ch2Iterator++) +128);
             break;
         case MathMode::SUB_CH1_FROM_CH2:
              std::cout << "math mode ch1 - ch2" << std::endl;
             for(unsigned i=0;i<_maxSamples;++i)
-                resultData.push_back(*(ch2Iterator++) - *(ch1Iterator++));
+                resultData.push_back(*(ch2Iterator++) - *(ch1Iterator++) + 128);
             break;
         case MathMode::MATHMODE_COUNT:
             break;
