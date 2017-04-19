@@ -148,6 +148,10 @@ void DataAnalyzer::computeMathChannels()
     }
     else
         std::cout << "computeMathChannels: maths are enabled" << std::endl;
+    double gainCh0 = _device->getGain(0)*DIVS_VOLTAGE;
+    double gainCh1 = _device->getGain(1)*DIVS_VOLTAGE;
+    double gainMath = _device->getGain(2)*DIVS_VOLTAGE;
+    std::cout << "gains channel 0: " << gainCh0 << " channel 1: " << gainCh1 << " gain math: " << gainMath << std::endl;
 
     unsigned math_channel_id = _device->getChannelCount();
     std::cout << "math_channel_id: " << math_channel_id << std::endl;
@@ -159,12 +163,20 @@ void DataAnalyzer::computeMathChannels()
     std::vector<double> &resultData = this->_analyzedData[math_channel_id].samples.voltage.sample;
 
     std::cout << "_analyzerSettings->mathmode: " << (int)_analyzerSettings->mathmode << std::endl;
-
+    double gainVoltsCh0;
+    double gainVoltsCh1;
+    int result;
     switch(_analyzerSettings->mathmode) {
     case MathMode::ADD_CH1_CH2:
         std::cout << "math mode add" << std::endl;
-        for(unsigned i=0;i<_maxSamples;++i)
-            resultData.push_back(*(ch1Iterator++) + *(ch2Iterator++)-128);  // calculation (v1-128) + (v2-128) + 128;
+        for(unsigned i=0;i<_maxSamples;++i) {
+            gainVoltsCh0= (*(ch1Iterator++) -128) * gainCh0/256.0;
+            gainVoltsCh1= (*(ch2Iterator++) -128) * gainCh1/256.0;
+            result = (gainVoltsCh0 + gainVoltsCh1) * 256.0 / gainMath + 128;
+            result &=0xff;
+            resultData.push_back((unsigned char )result);
+//            resultData.push_back(*(ch1Iterator++) + *(ch2Iterator++)-128);  // calculation (v1-128) + (v2-128) + 128;
+        }
         break;
     case MathMode::SUB_CH2_FROM_CH1:
             std::cout << "math mode ch2 - ch1" << std::endl;

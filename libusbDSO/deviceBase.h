@@ -63,6 +63,8 @@ class DeviceBase : public DeviceBaseSamples {
         ///         level not found,
         virtual ErrorCode setGain(unsigned int channel, double gain);
 
+        double getGain(unsigned int channel);
+
         /// \brief Set the offset for the given channel.
         /// \param channel The channel that should be set.
         /// \param offset The new offset value (0.0 - 1.0).
@@ -124,7 +126,7 @@ class DeviceBase : public DeviceBaseSamples {
         /// \brief Disconnect the oscilloscope.
         virtual void disconnectDevice() = 0;
 
-        /// \brief Returns specs fro gain settings available on the device
+        /// \brief Returns specs for gain settings available on the device
         const std::vector<DSO::dsoGainLevel>& getGainSpecs() const;
 
         /// \brief Returns the available coupling for the model
@@ -132,7 +134,6 @@ class DeviceBase : public DeviceBaseSamples {
 
         /// \brief Returns the no of physical channels
         unsigned int getPhysicalChannels();
-
 
         /// \brief Returns the sampling rates supported by the device
         const std::vector<DSO::dsoAvailableSamplingRate> &getAvailableSamplingrates() const;
@@ -146,7 +147,7 @@ class DeviceBase : public DeviceBaseSamples {
         /// \brief return record length from timebase
         HWRecordLengthID getRecordLengthFromTimebase(double timebase);
 
-        ///
+        /// \brief return current downsampling rate
         virtual int getDownsamplerRateFromTimebase(double timebase);
 
         /// \brief set timebase

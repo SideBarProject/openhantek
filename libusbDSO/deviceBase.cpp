@@ -147,19 +147,25 @@ namespace DSO {
     double DeviceBase::getTimebase() {
         return _settings.timebase;
     }
+
     void DeviceBase::setFirmwareFilename(std::string filename) {
         std::cout << "filename set to " << filename << std::endl;
         _settings.firmwareFilename = filename;
     }
 
+    double DeviceBase::getGain(unsigned int channel) {
+        return _settings.voltage[channel].gain;
+    }
+
     ErrorCode DeviceBase::setGain(unsigned int channel, double gain)
     {
-        std::cout <<"DeviceBase::setGain on channel: " << channel << " to " << gain << std::endl;
+        std::cout <<"DeviceBase::setGain on channel: " << channel << " to " << gain << " no of channels " << _specification.channels << std::endl;
         if(!isDeviceConnected())
             return ErrorCode::ERROR_CONNECTION;
 
-        if(channel >= _specification.channels)
+        if(channel >= _specification.channels+1)           // 2 physical channels + math channel
             return ErrorCode::ERROR_PARAMETER;
+
         _settings.voltage[channel].gain = gain/DIVS_VOLTAGE;
         char hwGainCode = -1;
         double gainID;
