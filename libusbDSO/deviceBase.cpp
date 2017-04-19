@@ -153,8 +153,17 @@ namespace DSO {
         _settings.firmwareFilename = filename;
     }
 
-    double DeviceBase::getGain(unsigned int channel) {
-        return _settings.voltage[channel].gain;
+    double DeviceBase::getGainIndex(unsigned int channel) {
+        double gain = _settings.voltage[channel].gain*DIVS_VOLTAGE;
+        double gainID;
+        for (int i=0;i<_specification.gainLevel.size();++i) {
+            std::cout << "DeviceBase::setGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
+            if (_specification.gainLevel[i].gainSteps == gain) {
+                gainID = _specification.gainLevel[i].gainIndex;
+                break;
+            }
+        }
+        return gainID;
     }
 
     ErrorCode DeviceBase::setGain(unsigned int channel, double gain)

@@ -63,7 +63,7 @@ class DeviceBase : public DeviceBaseSamples {
         ///         level not found,
         virtual ErrorCode setGain(unsigned int channel, double gain);
 
-        double getGain(unsigned int channel);
+        double getGainIndex(unsigned int channel);
 
         /// \brief Set the offset for the given channel.
         /// \param channel The channel that should be set.
