@@ -80,7 +80,8 @@ namespace DSO {
         SAMPLING_1MHZ  =  1,  /*!<  1MSa per channel */
         SAMPLING_500KHZ= 50,  /*!< 500kSa per channel */
         SAMPLING_200KHZ= 20,  /*!< 200kSa per channel */
-        SAMPLING_100KHZ= 10   /*!< 100kSa per channel */
+        SAMPLING_100KHZ= 10,   /*!< 100kSa per channel */
+        SAMPLINGRATE_INVALID = -1
     };
 
     enum HWRecordLengthID {

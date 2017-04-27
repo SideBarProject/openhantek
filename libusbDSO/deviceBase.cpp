@@ -73,6 +73,16 @@ namespace DSO {
         return RECORDLENGTH_INVALID;
     }
 
+    HWSamplingRateID DeviceBase::getSamplingrateIDFromTimebase(double timebase) {
+        const std::vector<DSO::dsoAvailableSamplingRate> &availableSamplingRates=getAvailableSamplingrates();
+        for (unsigned int i=0;i<availableSamplingRates.size();i++)
+            if (fabs(availableSamplingRates[i].timeBase - timebase) < 1e-9) {
+                std::cout << "DeviceBase::getSamplingrateIDFromTimebase: index: " << i << " sampling rate id: " << availableSamplingRates[i].samplingRateID << std::endl;
+                return availableSamplingRates[i].samplingRateID;
+            }
+        return SAMPLINGRATE_INVALID;
+    }
+
     int DeviceBase::getDownsamplerRateFromTimebase(double timebase) {
         const std::vector<DSO::dsoAvailableSamplingRate> &availableSamplingRates=getAvailableSamplingrates();
         for (unsigned int i=0;i<availableSamplingRates.size();i++)
@@ -141,6 +151,8 @@ namespace DSO {
                 _settings.samplerate.current = availableSamplingRates[i].samplingrateValue;
                 _settings.samplerate.recordLengthID = availableSamplingRates[i].recordLengthID;
             }
+        HWSamplingRateID HWsamplingRate = getSamplingrateIDFromTimebase(timebase);
+        std::cout <<  "DeviceBase::setTimebase: timebase: " << timebase << " HW sampling rate value: " << HWsamplingRate << std::endl;
 
         return ErrorCode::ERROR_NONE;
     }
@@ -195,22 +207,6 @@ namespace DSO {
         if (updateGain(channel, hwGainCode) != ErrorCode::ERROR_NONE)
             std::cout << "Error when setting gain" << std::endl;
 
-/*
-        // Find lowest gain voltage thats at least as high as the requested
-        unsigned gainID;
-        for(gainID = 0; gainID < _specification.gainLevel.size() - 1; ++gainID)
-            if(_specification.gainLevel[gainID].gainSteps >= gain)
-                 break;
-
-        // No gain level found
-        if(gainID == _specification.gainLevel.size())
-            return ErrorCode::ERROR_PARAMETER;
-
-        updateGain(channel, _specification.gainLevel[gainID].gainIndex, gainID);
-        _settings.voltage[channel].gainID = gainID;
-        setOffset(channel, _settings.voltage[channel].offset);
-*/
-        // _specification.gainSteps[gainId]
         return ErrorCode::ERROR_NONE;
     }
 

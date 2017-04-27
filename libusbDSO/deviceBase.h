@@ -144,9 +144,11 @@ class DeviceBase : public DeviceBaseSamples {
         /// \brief return sampling rate from timebase
         double getSamplingrateFromTimebase(double timebase);
 
+        /// \brief return sampling rate HW value from timebase
+        HWSamplingRateID getSamplingrateIDFromTimebase(double timebase);
+
         /// \brief return record length from timebase
         HWRecordLengthID getRecordLengthFromTimebase(double timebase);
-
         /// \brief return current downsampling rate
         virtual int getDownsamplerRateFromTimebase(double timebase);
 
@@ -183,6 +185,8 @@ protected:
         /// \param gain The gain that should be met (V/div).
         virtual ErrorCode updateGain(unsigned channel, unsigned char gainIndex) = 0;
 
+        virtual ErrorCode updateSamplerate(double timebase) = 0;
+
         /// \brief Set the offset for the given channel.
         /// \param channel The channel that should be set.
         /// \param offset The new offset value (0.0 - 1.0).
@@ -201,6 +205,7 @@ protected:
         /// \brief Set the trigger slope.
         /// \param slope The Slope that should cause a trigger.
         virtual ErrorCode updateTriggerSlope(Slope slope) = 0;
+
 };
 
 }

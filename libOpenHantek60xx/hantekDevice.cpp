@@ -279,9 +279,11 @@ void HantekDevice::updatePretriggerPosition(double pretrigger_pos_in_s) {}
 
 void HantekDevice::updateRecordLength(unsigned int index) {}
 
-//void HantekDevice::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) {}
-void HantekDevice::updateSamplerate(double timebase) {
+ErrorCode HantekDevice::updateSamplerate(double timebase) {
     std::cout << "HantekDevice::updateSamplerate setting sampling rate for timebase: " << timebase << std::endl;
+    DSO::HWSamplingRateID samplingRateID = getSamplingrateIDFromTimebase(timebase);
+    std::cout << "HW value for sampling rate: " << samplingRateID << std::endl;
+    return ErrorCode::ERROR_NONE;
 }
 
 ErrorCode HantekDevice::updateGain(unsigned channel, unsigned char hwGainCode)

@@ -238,6 +238,8 @@ void DeviceBaseSamples::setRecordLengthByID(unsigned int recordTypeID) {
     _recordLengthChanged(_settings.recordTypeID);
 }
 */
+
+
 void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
     unsigned sampleCountAllChannels;
 

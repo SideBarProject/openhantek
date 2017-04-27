@@ -279,10 +279,10 @@ void HorizontalDock::timebaseSelected(double timebase) {
 
     qDebug() << "no of timbase values: " << availableSamplingRates.size() << endl;
     for (int i=0; i< availableSamplingRates.size(); i++) {
-        qDebug() << "index: " << i << " timebase: " <<  availableSamplingRates[i].timeBase << "timebase to be searched: "<< timeValue << endl;
+//        qDebug() << "index: " << i << " timebase: " <<  availableSamplingRates[i].timeBase << "timebase to be searched: "<< timeValue << endl;
         if (fabs(timeValue-availableSamplingRates[i].timeBase) < 1e-9) {
             index = i;
-//            break;
+            break;
         }
     }
     int recordLengthID;
@@ -297,6 +297,7 @@ void HorizontalDock::timebaseSelected(double timebase) {
         recordLengthID = availableSamplingRates[index].recordLengthID;
         m_device->setRecordLengthByID((DSO::HWRecordLengthID)recordLengthID);
         qDebug() << "HorizontalDock::timebaseSelected samplerate: " << samplingrateValue << " record length index: " << recordLengthID << endl;
+        m_device->setTimebase(timebase);
     }
     for (int i=0;i<samplingrateStrings.size();++i)
         qDebug() << samplingrateStrings[i] << endl;

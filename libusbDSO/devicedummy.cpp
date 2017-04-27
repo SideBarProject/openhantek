@@ -5,15 +5,16 @@ void DeviceDummy::updatePretriggerPosition(double position) {
     std::cout << "deviceDummy: new pretrigger position: " << position << std::endl;
 }
 void DeviceDummy::updateRecordLength(unsigned int index) {}
-//void DeviceDummy::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) {
-void DeviceDummy::updateSamplerate(double timebase) {
+
+ErrorCode DeviceDummy::updateSamplerate(double timebase) {
     std::cout << "setting sampling rate for timebase: " << timebase << std::endl;
     for (int i=0; i<_specification.availableSamplingRates.size();i++) {
         if (_specification.availableSamplingRates[i].timeBase == timebase)
             std::cout << "Setting sampling rate to " << _specification.availableSamplingRates[i].samplingRateID << std::endl;
     }
-
+    return ErrorCode::ERROR_NONE;
 }
+
 ErrorCode DeviceDummy::updateGain(unsigned channel, unsigned char gain) {
     std::cout << "deviceDummy: updateGain on channel " << channel << " to " << (int)gain  << "(hw gain code)" << std::endl;
     return ErrorCode::ERROR_NONE;

@@ -94,9 +94,10 @@ protected:
     /// \param limits The downsampling factor.
     /// \param downsampler The downsampling factor.
     /// \param fastRate true, if one channel uses all buffers.
-//    virtual void updateSamplerate(ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) = 0;
-    virtual void updateSamplerate(double timebase) = 0;
+
+
     virtual void updatePretriggerPosition(double position) = 0;
+
 public:
     /**
      * This section contains callback methods. Register your function or class method to get notified
