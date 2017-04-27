@@ -248,14 +248,14 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
         sampleCountAllChannels = data.size() / 2; // For 9bit-16bit Analog digital converters
     else
         sampleCountAllChannels = data.size();
-    std::cout << "DeviceBaseSamples::processSamples sampleCountAllChannels: " << sampleCountAllChannels << std::endl;
+//    std::cout << "DeviceBaseSamples::processSamples sampleCountAllChannels: " << sampleCountAllChannels << std::endl;
     // Fast rate mode, one channel is using all buffers
     // Normal mode, channels are using their separate buffers
 //    const bool fastRate = isFastRate();
     const bool fastRate=false;
     const unsigned sampleCount = fastRate ? sampleCountAllChannels : (sampleCountAllChannels / _specification.channels);
     const unsigned buffer_inc  = fastRate ? 1 : _specification.channels;
-    std::cout << "DeviceBaseSamples::processSamples sampleCounts: " << sampleCount << std::endl;
+//    std::cout << "DeviceBaseSamples::processSamples sampleCounts: " << sampleCount << std::endl;
     // Convert data from the oscilloscope and write it into the sample buffer
     // Additional most significant bits after the normal data
     const unsigned int extraBitsSize = _specification.sampleSize - 8; // Number of extra bits
@@ -284,9 +284,9 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
         // all even buffer positions are chan0, all uneven positions belong to chan1.
 //        const int chanOffset = fastRate ? 0 : _specification.channels - 1 - channel;
         const int chanOffset = fastRate ? 0 : channel;
-        std::cout << "DeviceBaseSamples::processSamples channel offset: " << chanOffset << std::endl;
-        std::cout << "buffer position: " << bufferPosition <<" buffer increment " << buffer_inc << std::endl;
-        std::cout << "channel: " << channel << " chanOffset: " << chanOffset << std::endl;
+//        std::cout << "DeviceBaseSamples::processSamples channel offset: " << chanOffset << std::endl;
+//        std::cout << "buffer position: " << bufferPosition <<" buffer increment " << buffer_inc << std::endl;
+//        std::cout << "channel: " << channel << " chanOffset: " << chanOffset << std::endl;
 
         for(unsigned sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex, bufferPosition += buffer_inc) {
             bufferPosition %= 2*sampleCount;
@@ -299,7 +299,7 @@ void DeviceBaseSamples::processSamples(std::vector<unsigned char>& data) {
                     unsigned extraBitsIndex = 8 - (_specification.channels - 1 - extraBitsPosition) * extraBitsSize;
                     extra_value = (((unsigned short int) data[sampleCountAllChannels + bufferPosition - extraBitsPosition] << extraBitsIndex) & extraBitsMask);
                 } else {
-                    std::cout << "DeviceBaseSamples::processSamples not fastRate" << std::endl;
+ //                   std::cout << "DeviceBaseSamples::processSamples not fastRate" << std::endl;
                     unsigned extraBitsIndex = 8 - channel * extraBitsSize; // Bit position offset for extra bits extraction
                     extra_value = (((unsigned short int) data[sampleCountAllChannels + bufferPosition] << extraBitsIndex) & extraBitsMask);
                 }

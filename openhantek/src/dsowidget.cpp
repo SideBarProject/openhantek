@@ -261,8 +261,8 @@ DsoWidget::DsoWidget(CurrentDevice *currentDevice, DsoSettings *settings, QWidge
 	this->setLayout(this->mainLayout);
 	
 	// Connect change-signals of sliders
-	this->connect(this->offsetSlider, SIGNAL(valueChanged(int, double)), this, SLOT(updateOffset(int, double)));
-	this->connect(this->triggerPositionSlider, SIGNAL(valueChanged(int, double)), this, SLOT(updateTriggerPosition(int, double)));
+    this->connect(this->offsetSlider, SIGNAL(valueChanged(int, double)), this, SLOT(updateOffset(int, double)));
+    this->connect(this->triggerPositionSlider, SIGNAL(valueChanged(int, double)), this, SLOT(updateTriggerPosition(int, double)));
 	this->connect(this->triggerLevelSlider, SIGNAL(valueChanged(int, double)), this, SLOT(updateTriggerLevel(int, double)));
 	this->connect(this->markerSlider, SIGNAL(valueChanged(int, double)), this, SLOT(updateMarker(int, double)));
 	this->connect(this->markerSlider, SIGNAL(valueChanged(int, double)), this->mainScope, SLOT(updateGL()));
@@ -749,6 +749,7 @@ void DsoWidget::updateTriggerPosition(int index, double value) {
 		return;
 	
 	this->settings->scope.trigger.position = value;
+    qDebug() << "DsoWidget::updateTriggerPosition: " << value << endl;
 	
 	this->updateTriggerDetails();
 	

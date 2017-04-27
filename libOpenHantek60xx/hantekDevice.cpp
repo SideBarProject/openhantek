@@ -258,9 +258,11 @@ void HantekDevice::connectDevice(){
     /*
      * here we switch sampling on the hardware on and off
      */
+
     _samplingStarted =  [this]() {
 
     };
+
     _samplingStopped =  [this]() {
 
     };
@@ -277,13 +279,20 @@ void HantekDevice::updatePretriggerPosition(double pretrigger_pos_in_s) {}
 
 void HantekDevice::updateRecordLength(unsigned int index) {}
 
-void HantekDevice::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) {}
+//void HantekDevice::updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) {}
+void HantekDevice::updateSamplerate(double timebase) {
+    std::cout << "HantekDevice::updateSamplerate setting sampling rate for timebase: " << timebase << std::endl;
+}
 
 ErrorCode HantekDevice::updateGain(unsigned channel, unsigned char hwGainCode)
 {
     std::cout << "hantekDevice::updateGain on channel: " << channel <<" hw gain Code: " << (int) hwGainCode << std::endl;
     unsigned char sensitivityRequest;
     unsigned char newGain = hwGainCode;
+    /* set hardware gain only on physical channels*/
+    if (channel > _specification.channels-1)
+        return ErrorCode::ERROR_NONE;
+
     if (channel == 0)
         sensitivityRequest = HT6022_CH1_VR_REQUEST;
     if (channel == 1)
@@ -292,7 +301,7 @@ ErrorCode HantekDevice::updateGain(unsigned channel, unsigned char hwGainCode)
     int error_code = _device->controlWrite(sensitivityRequest, &newGain , 1, HT6022_CH1_VR_VALUE , HT6022_FIRMWARE_INDEX);
 
     if (error_code < 0) {
-        std::cout << "error " << error_code << " when setting gain on channel " <<channel << " to " << (int) newGain << std::endl;
+        std::cout << "error " << (error_code & (int)0xff) << " when setting gain on channel " <<channel << " to " << (int) newGain << std::endl;
         _device->disconnect();
         return ErrorCode::ERROR_CONNECTION;
     }

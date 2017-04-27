@@ -68,14 +68,14 @@ DataAnalyzer::~DataAnalyzer() {
 /// \param channel Channel, whose data should be returned.
 /// \return Analyzed data as AnalyzedData struct.
 AnalyzedData const *DataAnalyzer::data(unsigned channel) const {
-    std::cout << "DataAnalyzer::data(): channel " << channel << std::endl;
+//    std::cout << "DataAnalyzer::data(): channel " << channel << std::endl;
 
     if(channel >= this->_analyzedData.size()) {
         std::cout << "_analyzedData.size(): " << this->_analyzedData.size() << std::endl;
-        std::cout << "returning nulptr" << std::endl;
+        std::cout << "returning nullptr" << std::endl;
         return nullptr;
     }
-    std::cout << "DataAnalyzer::data(): interval " << this->_analyzedData[channel].samples.voltage.interval << std::endl;
+//    std::cout << "DataAnalyzer::data(): interval " << this->_analyzedData[channel].samples.voltage.interval << std::endl;
     return &this->_analyzedData[channel];
 }
 
@@ -97,7 +97,7 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
 
     // Adapt the number of channels for analyzed data
     this->_analyzedData.resize(incomingData.size());
-    std::cout << "DataAnalyzer::copySamples() incoming data size: " << incomingData.size() << std::endl;
+//    std::cout << "DataAnalyzer::copySamples() incoming data size: " << incomingData.size() << std::endl;
     for(unsigned channel = 0; channel < incomingData.size(); ++channel) {
         AnalyzedData *const channelData = &this->_analyzedData[channel];
 
@@ -111,11 +111,11 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
         // Set sampling interval
         unsigned int downsamplingRate = _device->getDownsamplerRateFromTimebase(_device->getTimebase());
 
-        std::cout << "DataAnalyzer:: copySamples() downsampling rate: " << downsamplingRate << std::endl;
-        std::cout << "DataAnalyzer::copySamples() samplerate: " << samplerate << std::endl;
+//       std::cout << "DataAnalyzer:: copySamples() downsampling rate: " << downsamplingRate << std::endl;
+//       std::cout << "DataAnalyzer::copySamples() samplerate: " << samplerate << std::endl;
 
         const double interval = 1.0 * (double) downsamplingRate / (samplerate);
-        std::cout << "interval: " << interval << std::endl;
+//        std::cout << "interval: " << interval << std::endl;
 
         if(interval != channelData->samples.voltage.interval) {
             channelData->samples.voltage.interval = interval;
@@ -129,10 +129,10 @@ void DataAnalyzer::copySamples(const std::vector<std::vector<double>>& incomingD
             channelData->samples.voltage.sample.insert(channelData->samples.voltage.sample.end(),
                                                        incomingData.at(channel).begin(),
                                                        incomingData.at(channel).end());
-        std::cout << "DataAnalyzer::copySamples() append" << std::endl;
+//        std::cout << "DataAnalyzer::copySamples() append" << std::endl;
         }
         else {
-            std::cout << "DataAnalyzer::copySamples() not appending" << std::endl;
+ //           std::cout << "DataAnalyzer::copySamples() not appending" << std::endl;
             channelData->samples.voltage.sample = incomingData.at(channel);
         }
         maxSamples = std::max(channelData->samples.voltage.sample.size(), maxSamples);
@@ -151,10 +151,10 @@ void DataAnalyzer::computeMathChannels()
     double gainCh0 = _device->getGainIndex(0);
     double gainCh1 = _device->getGainIndex(1);
     double gainMath = _device->getGainIndex(2);
-    std::cout << "gains channel 0: " << gainCh0 << " channel 1: " << gainCh1 << " gain math: " << gainMath << std::endl;
+//    std::cout << "gains channel 0: " << gainCh0 << " channel 1: " << gainCh1 << " gain math: " << gainMath << std::endl;
 
     unsigned math_channel_id = _device->getChannelCount();
-    std::cout << "math_channel_id: " << math_channel_id << std::endl;
+//    std::cout << "math_channel_id: " << math_channel_id << std::endl;
     _analyzedData.resize(math_channel_id+1);
 
     // Calculate values and write them into the sample buffer
@@ -168,7 +168,7 @@ void DataAnalyzer::computeMathChannels()
     int result;
     switch(_analyzerSettings->mathmode) {
     case MathMode::ADD_CH1_CH2:
-        std::cout << "math mode add" << std::endl;
+//        std::cout << "math mode add" << std::endl;
         for(unsigned i=0;i<_maxSamples;++i) {
             gainVoltsCh0= (*(ch1Iterator++) -128) * gainCh0;
             gainVoltsCh1= (*(ch2Iterator++) -128) * gainCh1;
@@ -179,7 +179,7 @@ void DataAnalyzer::computeMathChannels()
         }
         break;
     case MathMode::SUB_CH2_FROM_CH1:
-            std::cout << "math mode ch2 - ch1" << std::endl;
+//            std::cout << "math mode ch2 - ch1" << std::endl;
             for(unsigned i=0;i<_maxSamples;++i) {
                 gainVoltsCh0= (*(ch1Iterator++) -128) * gainCh0;
                 gainVoltsCh1= (*(ch2Iterator++) -128) * gainCh1;
@@ -190,7 +190,7 @@ void DataAnalyzer::computeMathChannels()
             }
             break;
         case MathMode::SUB_CH1_FROM_CH2:
-             std::cout << "math mode ch1 - ch2" << std::endl;
+//             std::cout << "math mode ch1 - ch2" << std::endl;
             for(unsigned i=0;i<_maxSamples;++i) {
                 gainVoltsCh0= (*(ch1Iterator++) -128) * gainCh0;
                 gainVoltsCh1= (*(ch2Iterator++) -128) * gainCh1;
@@ -205,7 +205,7 @@ void DataAnalyzer::computeMathChannels()
     }
     this->_analyzedData[math_channel_id].samples.voltage.interval = this->_analyzedData[0].samples.voltage.interval;
 
-    std::cout << "math interval: " << this->_analyzedData[math_channel_id].samples.voltage.interval << std::endl;
+//    std::cout << "math interval: " << this->_analyzedData[math_channel_id].samples.voltage.interval << std::endl;
 }
 
 void DataAnalyzer::computeFreqSpectrumPeak(unsigned& lastRecordLength, WindowFunction& lastWindow, double *window) {
@@ -428,10 +428,10 @@ void DataAnalyzer::analyzeThread() {
         std::cout << "analysis thread not kept running" << std::endl;
     while(_keep_thread_running) {
         _new_data_arrived_mutex.lock();
-        std::cout << "analyzeThread()" << std::endl;
+//        std::cout << "analyzeThread()" << std::endl;
         computeMathChannels();
         computeFreqSpectrumPeak(lastRecordLength, lastWindow, window);
-        std::cout << "analyzeThread() analysis finished" << std::endl;
+//        std::cout << "analyzeThread() analysis finished" << std::endl;
         this ->_analyzed();
 
         //static unsigned long id = 0;

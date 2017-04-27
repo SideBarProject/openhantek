@@ -102,7 +102,8 @@ class HantekDevice : public DSO::DeviceBase, public DSO::CommunicationThreadQueu
 
         virtual void updatePretriggerPosition(double pretrigger_pos_in_s) override;
         virtual void updateRecordLength(unsigned int index) override;
-        virtual void updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) override;
+//        virtual void updateSamplerate(DSO::ControlSamplerateLimits *limits, unsigned int downsampler, bool fastRate) override;
+        virtual void updateSamplerate(double timebase);
         virtual ErrorCode updateGain(unsigned channel, unsigned char hwGainCode);
         virtual void updateOffset(unsigned int channel, unsigned short int offsetValue);
         virtual ErrorCode updateTriggerSource(bool special, unsigned int channel);

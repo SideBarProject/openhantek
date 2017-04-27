@@ -157,7 +157,7 @@ namespace DSO {
         double gain = _settings.voltage[channel].gain*DIVS_VOLTAGE;
         double gainID;
         for (int i=0;i<_specification.gainLevel.size();++i) {
-            std::cout << "DeviceBase::setGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
+ //           std::cout << "DeviceBase::getGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
             if (_specification.gainLevel[i].gainSteps == gain) {
                 gainID = _specification.gainLevel[i].gainIndex;
                 break;
@@ -168,7 +168,7 @@ namespace DSO {
 
     ErrorCode DeviceBase::setGain(unsigned int channel, double gain)
     {
-        std::cout <<"DeviceBase::setGain on channel: " << channel << " to " << gain << " no of channels " << _specification.channels << std::endl;
+//        std::cout <<"DeviceBase::setGain on channel: " << channel << " to " << gain << " no of channels " << _specification.channels << std::endl;
         if(!isDeviceConnected())
             return ErrorCode::ERROR_CONNECTION;
 
@@ -179,7 +179,7 @@ namespace DSO {
         char hwGainCode = -1;
         double gainID;
         for (int i=0;i<_specification.gainLevel.size();++i) {
-            std::cout << "DeviceBase::setGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
+//            std::cout << "DeviceBase::setGain: gain "  << _specification.gainLevel[i].gainSteps << " compare to " << gain<< std::endl;
             if (_specification.gainLevel[i].gainSteps == gain) {
                 hwGainCode = _specification.gainLevel[i].hwGain;
                 gainID = _specification.gainLevel[i].gainIndex;
@@ -190,7 +190,7 @@ namespace DSO {
             std::cout << "DeviceBase::setGain: gain " << gain << " not found in specs" << std::endl;
         else {
             _settings.voltage[channel].gainID = gainID;
-            std::cout << "setting gain to " << _settings.voltage[channel].gainID << " hw gain code: " << (int) hwGainCode <<std::endl;
+//            std::cout << "setting gain to " << _settings.voltage[channel].gainID << " hw gain code: " << (int) hwGainCode <<std::endl;
         }
         if (updateGain(channel, hwGainCode) != ErrorCode::ERROR_NONE)
             std::cout << "Error when setting gain" << std::endl;

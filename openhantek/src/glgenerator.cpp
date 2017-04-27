@@ -92,7 +92,7 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
 /// \brief Prepare arrays for drawing the data we get from the data analyzer.
     void GlGenerator::generateGraphs() {
 	// Adapt the number of graphs
-    qDebug() << "GlGenerator::generateGraphs: no of modes: " << DSO::ChannelMode::CHANNELMODE_COUNT << endl;
+//    qDebug() << "GlGenerator::generateGraphs: no of modes: " << DSO::ChannelMode::CHANNELMODE_COUNT << endl;
 //    qDebug() << "format: " << this->settings->scope.horizontal.format << endl;
 
     for(int mode = DSO::ChannelMode::CHANNELMODE_VOLTAGE; mode < DSO::ChannelMode::CHANNELMODE_COUNT; ++mode) {
@@ -133,23 +133,23 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
 
     case DSO::GraphFormat::GRAPHFORMAT_TY:
 
-        qDebug() << "GlGenerator::generateGraphs format TY" << endl;
-        qDebug() << "this->settings->scope.voltage.count()" << this->settings->scope.voltage.count() <<endl;
+//        qDebug() << "GlGenerator::generateGraphs format TY" << endl;
+//        qDebug() << "this->settings->scope.voltage.count()" << this->settings->scope.voltage.count() <<endl;
 
         for (int i=0; i<this->settings->scope.voltage.count();i++) {
 
+/*
         if(this->settings->scope.voltage[i].used)
             qDebug() <<"channel "<<i<<" is used " << endl;
         else
             qDebug() <<"channel "<<i << " is not used " << endl;
-
+*/
         }
 
-        qDebug() << "needed size " << this->dataAnalyzer->sampleCount() << endl;
-        qDebug() << "no of channels " << this->settings->scope.voltage.count() << endl;
+//        qDebug() << "needed size " << this->dataAnalyzer->sampleCount() << endl;
+//        qDebug() << "no of channels " << this->settings->scope.voltage.count() << endl;
 
         for(int channel = 0; channel < this->settings->scope.voltage.count(); ++channel) {
-//        for(int channel = 0; channel < 2; ++channel) {
             if(!this->settings->scope.voltage[channel].used)
                 continue;
             for(int index = 0; index < this->digitalPhosphorDepth; ++index) {
@@ -176,10 +176,11 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
                 break;
             const DSOAnalyzer::SampleValues& sampleValues = this->dataAnalyzer->data(channel)->samples.voltage;
 
-            qDebug() << "sample rate: " << settings->scope.horizontal.samplerate << endl;
-            qDebug() << "interval: " << sampleValues.interval <<" timebase: " << this->settings->scope.horizontal.timebase << endl;
+//            qDebug() << "sample rate: " << settings->scope.horizontal.samplerate << endl;
+//            qDebug() << "interval: " << sampleValues.interval <<" timebase: " << this->settings->scope.horizontal.timebase << endl;
 
             double horizontalFactor = sampleValues.interval / this->settings->scope.horizontal.timebase;
+/*
             qDebug() << "channel: " << channel << endl;
             qDebug() << " horizontalFactor: " << horizontalFactor;
             qDebug() << " sampleCount" << this->dataAnalyzer->sampleCount();
@@ -189,10 +190,10 @@ void GlGenerator::setAnalyzer (std::shared_ptr<DSOAnalyzer::DataAnalyzer> analyz
             qDebug() << "gain " <<  this->settings->scope.voltage[channel].gain;
             qDebug() << " gainID " << this->settings->scope.voltage[channel].gainID;
             qDebug() << " offset " <<  this->settings->scope.voltage[channel].offset << endl;
-
+*/
             double multFactor = this->settings->scope.voltage[channel].gainID / (double) this->settings->scope.voltage[channel].gain;
-            qDebug() << "mult factor: " << multFactor  << endl;
-            qDebug() << "sample count from analyzer: " << this->dataAnalyzer->sampleCount() << endl;
+//            qDebug() << "mult factor: " << multFactor  << endl;
+//            qDebug() << "sample count from analyzer: " << this->dataAnalyzer->sampleCount() << endl;
             for(unsigned int position = 0; position < this->dataAnalyzer->sampleCount(); ++position) {
                 vaNewChannel[arrayPosition++] = position * horizontalFactor - (DIVS_TIME / 2);
                 //                   vaNewChannel[arrayPosition++] = sin(position/50.)*4;
