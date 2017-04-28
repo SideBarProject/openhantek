@@ -219,7 +219,7 @@ void HantekDevice::connectDevice(){
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_5KB,500e-6,1));
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_10KB,1e-3,1));
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_1MHZ,    1e6, DSO::HWRecordLengthID::RECORDLENGTH_20KB,2e-3,1));
-    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_500KHZ,200e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,5e-3,1));
+    _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_200KHZ,200e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,5e-3,1));
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_200KHZ,200e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,10e-3,1));
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_20KB,20e-3,1));
     _specification.availableSamplingRates.push_back(DSO::dsoAvailableSamplingRate(DSO::HWSamplingRateID::SAMPLING_100KHZ,100e3, DSO::HWRecordLengthID::RECORDLENGTH_10KB,50e-3,5));
@@ -283,6 +283,15 @@ ErrorCode HantekDevice::updateSamplerate(double timebase) {
     std::cout << "HantekDevice::updateSamplerate setting sampling rate for timebase: " << timebase << std::endl;
     DSO::HWSamplingRateID samplingRateID = getSamplingrateIDFromTimebase(timebase);
     std::cout << "HW value for sampling rate: " << samplingRateID << std::endl;
+    unsigned char samplingrateCode = samplingRateID;
+    int error_code = _device->controlWrite( HT6022_SR_REQUEST, &samplingrateCode , 1, HT6022_SR_VALUE, HT6022_SR_INDEX);
+    if (error_code < 0) {
+        std::cout << "error " << (error_code & (int)0xff) << " when setting sampling rate to " << (int) samplingrateCode << std::endl;
+        _device->disconnect();
+        return ErrorCode::ERROR_CONNECTION;
+    }
+    else
+        std::cout << "sampling rate successfully set to " << (int) samplingrateCode << std::endl;
     return ErrorCode::ERROR_NONE;
 }
 
@@ -300,7 +309,7 @@ ErrorCode HantekDevice::updateGain(unsigned channel, unsigned char hwGainCode)
     if (channel == 1)
         sensitivityRequest = HT6022_CH2_VR_REQUEST;
 
-    int error_code = _device->controlWrite(sensitivityRequest, &newGain , 1, HT6022_CH1_VR_VALUE , HT6022_FIRMWARE_INDEX);
+    int error_code = _device->controlWrite(sensitivityRequest, &newGain , 1, HT6022_CH1_VR_VALUE , HT6022_CH1_VR_INDEX);
 
     if (error_code < 0) {
         std::cout << "error " << (error_code & (int)0xff) << " when setting gain on channel " <<channel << " to " << (int) newGain << std::endl;

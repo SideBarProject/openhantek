@@ -153,9 +153,9 @@ namespace DSO {
             }
         HWSamplingRateID HWsamplingRate = getSamplingrateIDFromTimebase(timebase);
         std::cout <<  "DeviceBase::setTimebase: timebase: " << timebase << " HW sampling rate value: " << HWsamplingRate << std::endl;
-
-        return ErrorCode::ERROR_NONE;
+        return updateSamplerate(timebase);
     }
+
     double DeviceBase::getTimebase() {
         return _settings.timebase;
     }

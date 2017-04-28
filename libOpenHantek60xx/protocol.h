@@ -12,7 +12,7 @@
 /* channel 2 voltage range (gain) */
 #define HT6022_CH2_VR_REQUEST               0XE1
 #define HT6022_CH2_VR_VALUE                 0X00
-#define HT6022_CH2_VT_INDEX                 0X00
+#define HT6022_CH2_VR_INDEX                 0X00
 #define HT6022_CH2_VR_SIZE                  0X01
 /* sampling rate */
 #define HT6022_SR_REQUEST                   0XE2
